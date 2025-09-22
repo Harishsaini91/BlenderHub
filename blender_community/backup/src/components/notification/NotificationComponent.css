@@ -1,0 +1,85 @@
+.notification-container {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+  width: 100%;
+  max-width: 700px;
+  margin: 2rem auto;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+.notification-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.notification-header h2 {
+  margin: 0;
+  font-size: 1.5rem;
+  color: #333;
+}
+
+.tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  border-bottom: 2px solid #ddd;
+}
+
+.tab {
+  padding: 0.6rem 1.2rem;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  border-bottom: 3px solid transparent;
+  font-weight: 500;
+  color: #555;
+  transition: all 0.3s ease;
+}
+
+.tab:hover {
+  color: #007bff;
+}
+
+.tab.active {
+  color: #007bff;
+  border-bottom: 3px solid #007bff;
+  background-color: #f0f8ff;
+  border-radius: 6px 6px 0 0;
+}
+
+.notification-content {
+  min-height: 100px;
+  padding: 1rem 0;
+}
+
+.empty-message {
+  color: #777;
+  font-style: italic;
+  text-align: center;
+  padding: 1rem;
+}
+ 
+
+/*  */
+.connection-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.connection-tabs button {
+  padding: 8px 12px;
+  background: #ddd;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+
+.connection-tabs .active-sub {
+  background: #333;
+  color: white;
+}

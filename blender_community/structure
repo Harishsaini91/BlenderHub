@@ -1,0 +1,22 @@
+blender_community/
+├── client/
+│   ├── node_modules/
+│   ├── public/
+│   │   └── index.html
+│   ├── src/
+│   │   ├── App.css
+│   │   ├── App.js
+│   │   ├── App.test.js
+│   │   ├── index.css
+│   │   ├── index.js
+│   ├── .gitignore
+│   ├── package-lock.json
+│   ├── package.json
+│   └── README.md
+│
+├── server/
+│   ├── node_modules/
+│   ├── package-lock.json
+│   └── package.json
+│
+└── structure  (note: likely a file or folder, unclear from image)

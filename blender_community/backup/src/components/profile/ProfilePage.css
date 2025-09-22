@@ -1,0 +1,373 @@
+/* ProfilePage.css */
+
+.profile-page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #fafafa;
+}
+
+/* ===== HEADER SECTION ===== */
+.profile-header {
+  position: relative;
+  width: 100%;
+  height: 250px;
+  background: #f0f0f0;
+  border-radius: 12px;
+  overflow: hidden;
+  margin-bottom: 3rem;
+}
+
+.banner-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ===== PROFILE IMAGE & BASIC INFO ===== */
+.banner-section{
+  position: relative;
+  padding-top: 40px;
+}
+
+
+
+.profile-picture-container {
+  position: absolute;
+  bottom: -60px;
+  left: 30px;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.profile-image {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #ddd;
+  border: 4px solid white;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.profile-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center;
+}
+
+/* Fallback initials if no image */
+.profile-image span {
+  font-size: 2.5rem;
+  color: #666;
+  font-weight: bold;
+}
+
+/* ===== PROFILE TEXT INFO ===== */
+.profile-info {
+  margin-top: 70px;
+  margin-left: 1rem;
+}
+
+.profile-name {
+  font-size: 1.6rem;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.job-title {
+  font-size: 1rem;
+  color: #777;
+  margin-bottom: 0.5rem;
+}
+
+.bio {
+  font-size: 0.95rem;
+  color: #444;
+  margin-bottom: 0.5rem;
+  line-height: 1.4;
+}
+
+/* ===== SOCIAL LINKS ===== */
+.platform-links {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.5rem;
+}
+
+.platform-links a {
+  color: #333;
+  font-size: 1.4rem;
+  transition: 0.3s ease;
+}
+
+.platform-links a:hover {
+  color: #0073e6;
+}
+
+/* ===== SKILLS SECTION ===== */
+.skills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 1rem;
+}
+
+.skill-tag {
+  background-color: #e5f3ff;
+  color: #0077cc;
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* ===== MEDIA GALLERY SECTION ===== */
+.media-section {
+  margin-top: 2rem;
+  position: relative;
+}
+
+.media-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 1rem;
+}
+
+.media-grid img,
+.media-grid video {
+  width: 160px;
+  height: 100px;
+  border-radius: 8px;
+  object-fit: cover;
+  background-color: #eee;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* ===== SKILLS BLOCK ===== */
+.middle-section {
+    margin-top: 2rem;
+  position: relative;
+  padding: 1rem;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.05);
+}
+
+/* ===== TAB NAVIGATION (optional future) ===== */
+.profile-tabs {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.profile-tabs button {
+  background: none;
+  border: none;
+  font-weight: bold;
+  font-size: 1rem;
+  padding: 0.5rem 1rem;
+  margin: 0 5px;
+  cursor: pointer;
+  color: #555;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+
+.profile-tabs button.active {
+  color: #0073e6;
+  border-bottom: 2px solid #0073e6;
+}
+
+.tab-section {
+  padding: 1.5rem 0;
+}
+
+/* ===== EDIT ICON ===== */
+.edit-icon {
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: #666;
+  transition: color 0.2s ease;
+}
+
+.edit-icon:hover {
+  color: #000;
+}
+
+.top-edit {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 10;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  padding: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  transition: background-color 0.3s ease;
+}
+
+.top-edit:hover {
+  background-color: #f0f0f0;
+}
+
+/* ===== MODAL (for EditModal.js) ===== */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-box {
+  background: white;
+  padding: 2rem;
+  border-radius: 12px;
+  width: 90%;
+  max-width: 500px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+  position: relative;
+}
+
+.modal-box h3 {
+  font-size: 1.3rem;
+  margin-bottom: 1rem;
+}
+
+.modal-box input,
+.modal-box textarea {
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  font-size: 0.95rem;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+}
+
+.modal-actions button {
+  padding: 0.5rem 1.2rem;
+  font-size: 0.9rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+}
+
+.modal-actions button:first-child {
+  background-color: #0073e6;
+  color: white;
+}
+
+.modal-actions button:last-child {
+  background-color: #eee;
+}
+
+
+/*  */
+.media-section {
+  margin-top: 2rem;
+}
+
+.media-project {
+  margin-bottom: 2rem;
+  border: 1px solid #ccc;
+  padding: 1rem;
+  border-radius: 8px;
+  background: #f9f9f9;
+}
+
+.media-files {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 0.5rem;
+}
+
+.media-files img,
+.media-files video {
+  width: 120px;
+  height: auto;
+  border-radius: 4px;
+  object-fit: cover;
+  border: 1px solid #ddd;
+}
+
+
+/* name and link shhow visibale in any banner colure  */
+.info {
+  position: absolute;
+  bottom: -2rem;
+  /* bottom: 1rem; */
+  /* left: 1rem; */
+  left: -3rem;
+  right: 1rem;
+  background: rgba(0, 0, 0, 0.55); /* Dark semi-transparent overlay */
+  color: #fff;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  backdrop-filter: blur(6px); /* Optional: soft blur effect */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+}
+
+.info h2 {
+  margin: 0;
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
+}
+
+.info p {
+  margin: 0.3rem 0;
+  font-size: 1rem;
+  color: #f0f0f0;
+  line-height: 1.4;
+}
+
+.icons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.8rem;
+}
+
+.icons a {
+  background: rgba(255, 255, 255, 0.15);
+  color: #fff;
+  text-decoration: none;
+  padding: 0.4rem 0.75rem;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 0.95rem;
+  transition: background 0.3s ease;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.icons a:hover {
+  background: rgba(255, 255, 255, 0.3);
+  color: #fff;
+}
+

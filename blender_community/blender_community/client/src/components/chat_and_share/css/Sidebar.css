@@ -1,0 +1,106 @@
+.sidebar {
+  width: 300px;
+  background-color: #ffffff;
+  border-right: 1px solid #ddd;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.search-box {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 6px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+}
+
+.search-box button {
+  padding: 6px 10px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.search-box button:hover {
+  background-color: #0056b3;
+}
+
+.room-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.room-item {
+  display: flex;
+  gap: 10px;
+  padding: 10px 8px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background 0.2s;
+}
+
+.room-item:hover {
+  background-color: #f1f1f1;
+}
+.avatar {
+  width: 36px;
+  height: 36px;
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 14px;
+  overflow: hidden; /* 🔑 Ensures image stays within the circle */
+  position: relative;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* 🔑 Ensures image fills the circle without distortion */
+  border-radius: 50%;
+}
+
+
+.room-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.room-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.last-message {
+  color: #888;
+  font-size: 12px;
+}
+.status-dot {
+  font-size: 0.8rem;
+  margin-left: 6px;
+  color: gray;
+}
+
+.status-dot.online {
+  color: green;
+  font-weight: 500;
+}
+
+.status-dot.offline {
+  color: gray;
+}
+
+/* width control */
+ 

@@ -1,0 +1,144 @@
+.dashboard {
+  font-family: Arial, sans-serif;
+}
+
+/* Top Bar */
+.top-bar {
+  background-color: #20232a;
+  color: white;
+  padding: 10px 20px;
+}
+.top-bar ul {
+  display: flex;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.top-bar li {
+  margin-right: 20px;
+  cursor: pointer;
+}
+.top-bar .logo {
+  font-size: 18px;
+  font-weight: bold;
+  flex: 1;
+}
+.login-area {
+  margin-left: auto;
+}
+.profile-circle {
+  width: 32px;
+  height: 32px;
+  background-color: #61dafb;
+  color: white;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 32px;
+  font-weight: bold;
+}
+
+/* Main Area */
+.main-area {
+  display: flex;
+  height: calc(100vh - 50px);
+}
+
+.left-panel {
+  width: 90%;
+  padding: 20px;
+  background-color: #f3f3f3;
+}
+
+.right-panel {
+  width: 10%;
+  background-color: #ddd;
+  display: flex;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.menu-item {
+  padding: 12px;
+  margin-bottom: 8px;
+  background-color: #bbb;
+  text-align: center;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.menu-item.active {
+  background-color: #61dafb;
+  font-weight: bold;
+}
+
+
+.dropdown-menu {
+  position: absolute;
+  top: 55px;
+  right: 20px;
+  color: #20232a;
+  background: #fff;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  padding: 10px;
+  border-radius: 6px;
+  z-index: 1000;
+}
+.dropdown-menu div {
+  padding: 8px 12px;
+  cursor: pointer;
+}
+.dropdown-menu div:hover {
+  background-color: #f0f0f0;
+}
+
+.switch-link {
+  color: red;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 14px;
+}
+.profile-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background-color: #ccc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.user-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-initial {
+  font-weight: bold;
+  color: #333;
+}
+ 
+/*  */
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background: red;
+  color: white;
+  padding: 2px 6px;
+  font-size: 0.7rem;
+  border-radius: 10px;
+}
+
+.menu-item.active {
+  background-color: #007bff;
+  color: white;
+  font-weight: bold;
+}

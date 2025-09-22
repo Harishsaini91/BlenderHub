@@ -1,0 +1,55 @@
+.tool-selector-dropdown {
+  position: relative;
+  display: inline-block;
+}
+
+.tool-selector-button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #27272a;
+  color: white;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+  border: none;
+  font-size: 14px;
+}
+
+.tool-selector-button:hover {
+  background-color: #3f3f46;
+}
+
+.tool-selector-menu {
+  position: absolute;
+  top: 110%;
+  left: 0;
+  width: 220px;
+  background-color: #fff;
+  border-radius: 6px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+  z-index: 50;
+  overflow: hidden;
+}
+
+.tool-selector-menu button {
+  width: 100%;
+  text-align: left;
+  padding: 10px 14px;
+  font-size: 14px;
+  color: #111;
+  background: none;
+  border: none;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.tool-selector-menu button:hover {
+  background-color: #f4f4f5;
+}
+
+.tool-selector-menu .active {
+  background-color: #e4e4e7;
+  font-weight: 600;
+}
