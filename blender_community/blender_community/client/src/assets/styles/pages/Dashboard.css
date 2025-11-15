@@ -1,0 +1,165 @@
+/* ROOT */
+.dashboard {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  font-family: Arial, sans-serif;
+}
+
+/* ---------------- TOP BAR ---------------- */
+.top-bar {
+  background: #20232a;
+  color: white;
+  padding: 8px 20px;
+}
+
+.top-bar ul {
+  display: flex;
+  align-items: center;
+  list-style: none;
+  padding: 0;
+}
+
+.logo {
+  font-size: 20px;
+  font-weight: bold;
+  margin-right: auto;
+}
+
+.top-item {
+  margin-left: 20px;
+  cursor: pointer;
+  position: relative;
+}
+
+.badge {
+  position: absolute;
+  top: -5px;
+  right: -12px;
+  background: red;
+  padding: 2px 6px;
+  font-size: 10px;
+  border-radius: 10px;
+}
+
+/* USER DROPDOWN */
+.user-dropdown-wrapper {
+  position: relative;
+}
+
+.profile-circle {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #555;
+  overflow: hidden;
+}
+
+.user-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ---------------- MAIN AREA ---------------- */
+.main-area {
+  display: flex;
+  height: calc(100vh - 52px);
+  overflow: hidden;
+}
+
+/* LEFT PANEL */
+.left-panel {
+  width: calc(100% - 240px);
+  padding: 20px;
+  overflow-y: auto;
+  transition: width 0.3s ease;
+}
+
+.left-panel.full-width {
+  width: 100%;
+}
+
+/* ---------------- RIGHT PANEL ---------------- */
+.right-panel {
+  width: 240px;
+  background: #1a1a1a;
+  color: white;
+  border-left: 1px solid rgba(255, 255, 255, 0.1);
+  transition: width 0.3s ease;
+  position: relative;
+}
+
+.right-panel.closed {
+  width: 0;
+  overflow: hidden;
+}
+
+/* ALWAYS-VISIBLE TOGGLE STRIP */
+.toggle-strip {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  z-index: 2000;
+  transform: translateY(-50%);
+  width: 45px;
+  height: 80px;
+  background: #20232a;
+  border-radius: 8px 0 0 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.dashboard-hamburger {
+  font-size: 26px;
+  color: white;
+}
+
+/* MENU LIST */
+.menu-wrapper {
+  padding: 15px;
+}
+
+.menu-item {
+  padding: 12px;
+  background: #2b2b2b;
+  border-radius: 6px;
+  margin-bottom: 8px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.menu-item.active {
+  background: #007bff;
+  font-weight: bold;
+  color: white;
+}
+
+
+
+/* DROPDOWN MENU (restored clean CSS) */
+.dropdown-menu {
+  position: absolute;
+  top: 55px;
+  right: 20px;
+  background: #ffffff;
+  color: #20232a;
+  border-radius: 6px;
+  padding: 8px 0;
+  width: 160px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  border: 1px solid #ddd;
+  z-index: 2000;
+}
+
+.dropdown-menu div {
+  padding: 10px 15px;
+  cursor: pointer;
+  transition: 0.15s ease;
+}
+
+.dropdown-menu div:hover {
+  background: #f0f0f0;
+}

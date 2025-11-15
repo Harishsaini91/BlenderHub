@@ -1,4 +1,4 @@
-// routes/chatRouter.js
+// routes/chatRoutes.js
 const express = require("express");
 const multer = require("multer");
 const path = require("path");
@@ -9,7 +9,9 @@ const User = require("../models/User");
 
 const router = express.Router();
 
-// File upload setup
+/* ============================================================
+   🔧 FILE UPLOAD CONFIG
+============================================================ */
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
     const dir = "uploads/chat_files";
@@ -17,42 +19,88 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: function (req, file, cb) {
-    const unique = Date.now() + path.extname(file.originalname);
-    cb(null, file.fieldname + "-" + unique);
+    const unique = `${Date.now()}${path.extname(file.originalname)}`;
+    cb(null, `file_${unique}`);
   },
 });
 const upload = multer({ storage });
 
-// 1. Get all connected members for the current user
+/* ============================================================
+   1️⃣ GET ALL MEMBERS CONNECTED TO USER
+============================================================ */
 router.get("/members/:userId", async (req, res) => {
   try {
-    const user = await User.findById(req.params.userId).populate({
-      path: "members._id",
-      select: "name image",
-    });
+    const me = await User.findById(req.params.userId)
+      .populate({
+        path: "members._id",
+        select: "name image",
+      })
+      .lean();
 
-    if (!user) return res.status(404).json({ message: "User not found" });
+    if (!me) return res.status(404).json({ error: "User not found" });
 
-    const members = user.members.map((member) => {
-      const userRef = member._id;
-      return {
-        _id: userRef._id,
-        name: userRef.name,
-        image: userRef.image || null,
-      };
-    });
+    const members = me.members.map((m) => ({
+      _id: m._id._id,
+      name: m._id.name,
+      image: m._id.image || null,
+    }));
 
-    res.json(members);
+    return res.json(members);
   } catch (err) {
-    console.error("Error fetching members:", err.message);
-    res.status(500).json({ message: "Error fetching members", error: err.message });
+    console.error("Error getting members:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
-// 2. Create or get existing chat room
-router.post("/room", async (req, res) => {
-  const { userId, username, otherId, othername } = req.body;
+/* ============================================================
+   2️⃣ GET ALL ROOMS OF A USER
+============================================================ */
+router.get("/user-rooms/:userId", async (req, res) => {
   try {
+    const uid = new mongoose.Types.ObjectId(req.params.userId);
+
+    let rooms = await ChatRoom.find({
+      "members._id": uid,
+    }).lean();
+
+    // load user profiles for member details
+    const ids = [
+      ...new Set(
+        rooms.flatMap((r) => r.members.map((m) => m._id.toString()))
+      ),
+    ];
+
+    const users = await User.find(
+      { _id: { $in: ids } },
+      "name image"
+    ).lean();
+
+    const userMap = {};
+    users.forEach((u) => (userMap[u._id] = u));
+
+    rooms = rooms.map((r) => ({
+      ...r,
+      members: r.members.map((m) => ({
+        _id: m._id,
+        name: userMap[m._id]?.name || "Unknown",
+        image: userMap[m._id]?.image || null,
+      })),
+    }));
+
+    return res.json(rooms);
+  } catch (err) {
+    console.error("Error fetching rooms:", err);
+    return res.status(500).json({ error: "Server error" });
+  }
+});
+
+/* ============================================================
+   3️⃣ CREATE EMPTY ROOM (NOT USED ANYMORE BY NEW SYSTEM)
+============================================================ */
+router.post("/room", async (req, res) => {
+  try {
+    const { userId, username, otherId, othername } = req.body;
+
     let room = await ChatRoom.findOne({
       "members._id": { $all: [userId, otherId] },
     });
@@ -67,172 +115,197 @@ router.post("/room", async (req, res) => {
       });
     }
 
-    res.status(200).json(room);
+    return res.json(room);
   } catch (err) {
-    console.error("Error creating/finding room:", err.message);
-    res.status(500).json({ error: "Internal server error" });
+    console.error("Error creating room:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
-// ✅ POST message to a room (text or file)
-router.post("/message/:roomId", upload.single("file"), async (req, res) => {
-  try {
-    const { roomId } = req.params;
-    const { senderId, senderName, text } = req.body;
+/* ============================================================
+   4️⃣ CREATE ROOM WITH FIRST MESSAGE
+   — For TEMP ROOMS only!
+============================================================ */
+router.post(
+  "/room/create_with_message",
+  upload.single("file"),
+  async (req, res) => {
+    try {
+      const { senderId, senderName, receiverId, receiverName, text } = req.body;
 
-    const room = await ChatRoom.findById(roomId);
-    if (!room) return res.status(404).json({ error: "Room not found" });
+      if (!senderId || !receiverId) {
+        return res.status(400).json({ error: "Missing user IDs" });
+      }
 
-    const receiver = room.members.find(m => m._id.toString() !== senderId);
-    const receiverId = receiver?._id?.toString(); // for emitting to receiver
-    const receiverName = receiver?.name;
+      let fileBlock = null;
+      if (req.file) {
+        fileBlock = {
+          fileName: req.file.originalname,
+          fileUrl: `/uploads/chat_files/${req.file.filename}`,
+          fileType: req.file.mimetype,
+          time: new Date(),
+          status: { selfDelete: false, bothDeleted: false },
+        };
+      }
 
-    const messageEntry = {
-      time: new Date(),
-      status: { selfDelete: false, bothDelete: false },
-    };
+      const msg = {
+        text: text || "",
+        time: new Date(),
+        status: { selfDelete: false, bothDeleted: false },
+      };
 
-    if (text) messageEntry.text = text;
-    if (req.file) {
-      messageEntry.fileUrl = `/uploads/chat_files/${req.file.filename}`;
-      messageEntry.fileName = req.file.originalname;
-      messageEntry.fileType = req.file.mimetype;
-    }
-
-    const userField = `${senderName}.${req.file ? "file" : "text"}`;
-    const update = {
-      $push: { [`messages.${userField}`]: messageEntry },
-      $set: {
+      // CREATE NEW CHAT ROOM
+      const room = await ChatRoom.create({
+        members: [
+          { _id: senderId, name: senderName },
+          { _id: receiverId, name: receiverName },
+        ],
+        messages: {
+          [senderName]: {
+            text: text ? [msg] : [],
+            file: fileBlock ? [fileBlock] : [],
+          },
+        },
         lastMessage: {
           text: text || req.file?.originalname || "",
           sender: senderName,
           createdAt: new Date(),
         },
+      });
+
+      // Emit message to receiver
+      if (global._io) {
+        global._io.to(receiverId).emit("newMessageReceived", {
+          roomId: room._id,
+          senderId,
+          message: fileBlock || msg,
+        });
+      }
+
+      return res.json({
+        success: true,
+        roomId: room._id,
+        message: fileBlock || msg,
+      });
+    } catch (err) {
+      console.error("Error create_with_message:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
+  }
+);
+
+/* ============================================================
+   5️⃣ SEND MESSAGE TO EXISTING ROOM
+============================================================ */
+router.post("/message/:roomId", upload.single("file"), async (req, res) => {
+  try {
+    const { senderId, senderName, text } = req.body;
+    const roomId = req.params.roomId;
+
+    const room = await ChatRoom.findById(roomId);
+    if (!room) return res.status(404).json({ error: "Room not found" });
+
+    const receiver = room.members.find(
+      (m) => String(m._id) !== String(senderId)
+    );
+    const receiverId = receiver?._id.toString();
+
+    let messageBlock = null;
+
+    if (req.file) {
+      messageBlock = {
+        fileName: req.file.originalname,
+        fileUrl: `/uploads/chat_files/${req.file.filename}`,
+        fileType: req.file.mimetype,
+        time: new Date(),
+        status: { selfDelete: false, bothDeleted: false },
+      };
+    } else {
+      messageBlock = {
+        text,
+        time: new Date(),
+        status: { selfDelete: false, bothDeleted: false },
+      };
+    }
+
+    const field = `${senderName}.${req.file ? "file" : "text"}`;
+
+    await ChatRoom.findByIdAndUpdate(
+      roomId,
+      {
+        $push: { [`messages.${field}`]: messageBlock },
+        $set: {
+          lastMessage: {
+            text: text || req.file?.originalname || "",
+            sender: senderName,
+            createdAt: new Date(),
+          },
+        },
       },
-    };
+      { new: true }
+    );
 
-    const updatedRoom = await ChatRoom.findByIdAndUpdate(roomId, update, { new: true });
-
-    // ✅ Emit real-time update to the receiver via Socket.IO
-    if (receiverId && global._io) {
+    // Emit to receiver
+    if (global._io) {
       global._io.to(receiverId).emit("newMessageReceived", {
         roomId,
         senderId,
-        message: messageEntry,
+        message: messageBlock,
       });
     }
 
-    res.status(201).json({
-      user: senderName,
+    return res.json({
       type: req.file ? "file" : "text",
-      ...messageEntry,
+      ...messageBlock,
     });
-
   } catch (err) {
-    console.error("Error sending message:", err.message);
-    res.status(500).json({ error: "Failed to send message" });
+    console.error("Error sending message:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 });
 
-// 4. Get all grouped messages of a room
-// router.get("/room_all_messages/:roomId", async (req, res) => {
-//   try {
-//     const room = await ChatRoom.findById(req.params.roomId);
-//     if (!room) return res.status(404).json({ error: "Room not found" });
-
-//     res.json(room.messages || {});
-//   } catch (err) {
-//     console.error("Error fetching messages:", err.message);
-//     res.status(500).json({ error: "Failed to fetch messages" });
-//   }
-// });
-
-
+/* ============================================================
+   6️⃣ GET ALL MESSAGES OF A ROOM
+============================================================ */
 router.get("/room_all_messages/:roomId", async (req, res) => {
   try {
-    const room = await ChatRoom.findById(req.params.roomId);
+    const room = await ChatRoom.findById(req.params.roomId).lean();
     if (!room) return res.status(404).json({ error: "Room not found" });
 
-    const allMessages = [];
+    const all = [];
 
-    if (room.members?.length) {
-      room.members.forEach((member) => {
-        const username = member.name; // e.g., "Harish Saini"
+    room.members.forEach((member) => {
+      const username = member.name;
+      const block = room.messages?.[username];
 
-        // ✅ Use .get() because room.messages is a Map
-        const userMessages = room.messages.get(username);
+      if (!block) return;
 
-        console.log(`Messages for ${username}:`);
+      block.text?.forEach((msg) =>
+        all.push({
+          senderName: username,
+          senderId: member._id,
+          type: "text",
+          ...msg,
+        })
+      );
 
-        if (userMessages) {
-          const textMessages = userMessages.text || [];
-          const fileMessages = userMessages.file || [];
+      block.file?.forEach((msg) =>
+        all.push({
+          senderName: username,
+          senderId: member._id,
+          type: "file",
+          ...msg,
+        })
+      );
+    });
 
-          console.log("Text Messages:", textMessages);
-          console.log("File Messages:", fileMessages);
+    all.sort((a, b) => new Date(a.time) - new Date(b.time));
 
-          textMessages.forEach((msg) => {
-            allMessages.push({
-              senderName: username,
-              senderId: member._id.toString(),
-              type: "text",
-              ...msg,
-            });
-          });
-
-          fileMessages.forEach((msg) => {
-            allMessages.push({
-              senderName: username,
-              senderId: member._id.toString(),
-              type: "file",
-              ...msg,
-            });
-          });
-        } else {
-          console.log("No messages found.");
-        }
-      });
-    }
-
-    allMessages.sort((a, b) => new Date(a.time) - new Date(b.time));
-    res.json(allMessages);
+    return res.json(all);
   } catch (err) {
-    console.error("❌ Error fetching messages:", err.message);
-    res.status(500).json({ error: "Failed to fetch messages" });
+    console.error("Error fetching messages:", err);
+    return res.status(500).json({ error: "Server error" });
   }
 });
-
- 
-
-router.get("/user-rooms/:userId", async (req, res) => {
-  try {
-    const userId = new mongoose.Types.ObjectId(req.params.userId);
-
-    const rooms = await ChatRoom.find({
-      "members._id": userId,
-    }).lean(); // add lean to ensure plain objects
-
-    // manually enrich each member with user data
-    const userIds = [...new Set(rooms.flatMap(r => r.members.map(m => m._id.toString())))];
-
-    const userDocs = await User.find({ _id: { $in: userIds } }, "name image isOnline").lean();
-    const userMap = Object.fromEntries(userDocs.map(u => [u._id.toString(), u]));
-
-    const enrichedRooms = rooms.map(room => ({
-      ...room,
-      members: room.members.map(m => ({
-        ...userMap[m._id.toString()],
-        _id: m._id
-      })),
-    }));
-
-    res.json(enrichedRooms);
-  } catch (err) {
-    console.error("Error fetching user rooms:", err.message);
-    res.status(500).json({ error: "Failed to fetch chat rooms" });
-  }
-});
-
-
 
 module.exports = router;

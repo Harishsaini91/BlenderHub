@@ -1,8 +1,12 @@
+// client/src/components/filter_people/connectPeople
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 import "./ConnectPeople.css";
+import { openChatWindow } from "../../utils/openChatWindow";
 
-const ConnectPeople = ({ user, socket, mode = "connection" }) => {
+// const ConnectPeople = ({ user, socket, mode = "connection" }) => {
+const ConnectPeople = ({ user, socket, mode = "connection", setProfileUserId }) => {
+
   const [searchTerm, setSearchTerm] = useState("");
   const [filters, setFilters] = useState({ location: "", skills: "", available: "" });
   const [filterOptions, setFilterOptions] = useState({ location: [], skills: [], available: [] });
@@ -41,19 +45,19 @@ const ConnectPeople = ({ user, socket, mode = "connection" }) => {
       .catch((err) => console.error("Failed to load filters:", err));
   }, []);
 
- 
 
- useEffect(() => {
-  if (!user?._id) return;
 
-  fetchNotifications(); // 🔁 Important for checking sent/received
+  useEffect(() => {
+    if (!user?._id) return;
 
-  if (mode === "team") {
-    setResults(user.members || []);
-  } else {
-    fetchSuggestions();
-  }
-}, [user, mode]);
+    fetchNotifications(); // 🔁 Important for checking sent/received
+
+    if (mode === "team") {
+      setResults(user.members || []);
+    } else {
+      fetchSuggestions();
+    }
+  }, [user, mode]);
 
 
   const fetchNotifications = async () => {
@@ -85,32 +89,32 @@ const ConnectPeople = ({ user, socket, mode = "connection" }) => {
   const handleSearch = () => {
     fetchSuggestions();
   };
- 
-const alreadyConnectedOrRequested = (targetUserId) => {
-  const type = mode || "connection";
 
-  const isSent = notifications?.[type]?.sent?.some(
-    (n) => n.id?.toString() === targetUserId?.toString()
-  );
+  const alreadyConnectedOrRequested = (targetUserId) => {
+    const type = mode || "connection";
 
-  const isReceived = notifications?.[type]?.received?.some(
-    (n) => n.id?.toString() === targetUserId?.toString()
-  );
+    const isSent = notifications?.[type]?.sent?.some(
+      (n) => n.id?.toString() === targetUserId?.toString()
+    );
 
-  const isMutual = user?.members?.some((m) => m._id?.toString() === targetUserId?.toString());
+    const isReceived = notifications?.[type]?.received?.some(
+      (n) => n.id?.toString() === targetUserId?.toString()
+    );
 
-  if (type === "connection") {
-    // Hide "Connect" if already connected or pending
-    return isSent || isReceived || isMutual;
-  }
+    const isMutual = user?.members?.some((m) => m._id?.toString() === targetUserId?.toString());
 
-  if (type === "team" || type === "challenge") {
-    // Hide "Invite to Team" or "Challenge" only if request already sent/received
-    return isSent || isReceived;
-  }
+    if (type === "connection") {
+      // Hide "Connect" if already connected or pending
+      return isSent || isReceived || isMutual;
+    }
 
-  return false; // default return
-};
+    if (type === "team" || type === "challenge") {
+      // Hide "Invite to Team" or "Challenge" only if request already sent/received
+      return isSent || isReceived;
+    }
+
+    return false; // default return
+  };
 
 
 
@@ -152,7 +156,13 @@ const alreadyConnectedOrRequested = (targetUserId) => {
     setFeedback({ name: "", comment: "" });
     alert("Thanks for your feedback!");
   };
- 
+
+
+  const handleViewProfile = (id) => setProfileUserId(id);
+
+
+
+
   return (
     <div className="connect-container">
       {/* 🔍 Top Section — filters are available in all modes */}
@@ -198,12 +208,19 @@ const alreadyConnectedOrRequested = (targetUserId) => {
               return false;
             })
             .map((u) => {
-          
+
               const showButton = !alreadyConnectedOrRequested(u._id);
 
               return (
                 <div key={u._id} className="user-card">
-                  <img src={`/uploads/image/${u.image}`} alt={u.name} />
+                  {/* <img src={`/uploads/image/${u.image}`} alt={u.name} /> */}
+                  <img
+                    src={`/uploads/image/${u.image}`}
+                    alt={u.name}
+                    onClick={() => handleViewProfile(u._id)}
+                    style={{ cursor: "pointer" }}
+                  />
+
                   <div className="user-info">
                     <p>{u.name}</p>
                     <p>{u.skills?.join(", ")}</p>
@@ -224,6 +241,18 @@ const alreadyConnectedOrRequested = (targetUserId) => {
                             : "Challenge"}
                     </button>
                   )}
+
+                  {/* ✔ NEW CHAT BUTTON */}
+                  <button
+                    className="chat-start-btn"
+                    onClick={() => openChatWindow(user._id, u._id)}
+                    style={{ marginLeft: "10px" }}
+                  >
+                    💬 Chat
+                  </button>
+
+
+
                 </div>
               );
             })
@@ -236,6 +265,15 @@ const alreadyConnectedOrRequested = (targetUserId) => {
                   <img src={`/uploads/image/${m.image}`} alt="profile" />
                   <div className="text-info">
                     <p className="user-name">{m.name}</p>
+                    <button
+                      className="chat-start-btn"
+                      onClick={() => openChatWindow(user._id, m._id)}
+                    >
+                      💬 Start Chat
+                    </button>
+
+
+
                   </div>
                 </div>
               </div>

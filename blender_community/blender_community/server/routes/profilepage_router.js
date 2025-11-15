@@ -10,11 +10,67 @@ const upload = require('../middleware/upload');
  
  
 
-router.post("/update-profile", async (req, res) => {
+// router.post("/update-profile", async (req, res) => {
 
+//   try {
+//     const {
+//       _id,
+//       name,
+//       email,
+//       image,
+//       banner,
+//       bio = [],
+//       linkedin = [],
+//       github = [],
+//       skills = [], 
+//       media = []
+//     } = req.body;
+
+//     if (!_id) return res.status(400).json({ error: "User ID (_id) missing" });
+
+//     const user = await User.findById(_id);
+//     if (!user) return res.status(404).json({ error: "User not found" });
+
+//     // Update fields
+//     user.name = name || user.name;
+//     user.email = email || user.email;
+//     user.image = image || user.image;
+//     user.banner = banner || user.banner;
+//     user.bio = Array.isArray(bio) ? bio : [bio];
+//     user.linkedin = Array.isArray(linkedin) ? linkedin : [linkedin];
+//     user.github = Array.isArray(github) ? github : [github];
+//     user.skills = Array.isArray(skills) ? skills : [skills];
+
+//     // Validate media structure
+//     user.media = Array.isArray(media)
+//       ? media.map((m, i) => ({
+//           title: m.title || "",
+//           description: m.description || "",
+//           priority: m.priority ?? i,
+//           files: Array.isArray(m.files)
+//             ? m.files.map((f, j) => ({
+//                 url: f.url || "",
+//                 type: f.type || "image",
+//                 priority: f.priority ?? j
+//               }))
+//             : []
+//         }))
+//       : [];
+
+//     const updatedUser = await user.save(); 
+//     res.json(updatedUser);
+//   } catch (error) {
+//     console.error("Update profile error:", error);
+//     res.status(500).json({ error: "Internal server error" });
+//   }
+// });
+
+
+
+router.post("/update-profile", auth, async (req, res) => {
   try {
+    const loggedInUserId = req.user.id; // ✅ comes from verified JWT/session
     const {
-      _id,
       name,
       email,
       image,
@@ -22,16 +78,14 @@ router.post("/update-profile", async (req, res) => {
       bio = [],
       linkedin = [],
       github = [],
-      skills = [], 
+      skills = [],
       media = []
     } = req.body;
 
-    if (!_id) return res.status(400).json({ error: "User ID (_id) missing" });
-
-    const user = await User.findById(_id);
+    const user = await User.findById(loggedInUserId);
     if (!user) return res.status(404).json({ error: "User not found" });
 
-    // Update fields
+    // ✅ Update only their own data
     user.name = name || user.name;
     user.email = email || user.email;
     user.image = image || user.image;
@@ -41,7 +95,6 @@ router.post("/update-profile", async (req, res) => {
     user.github = Array.isArray(github) ? github : [github];
     user.skills = Array.isArray(skills) ? skills : [skills];
 
-    // Validate media structure
     user.media = Array.isArray(media)
       ? media.map((m, i) => ({
           title: m.title || "",
@@ -55,16 +108,15 @@ router.post("/update-profile", async (req, res) => {
               }))
             : []
         }))
-      : [];
+      : user.media;
 
-    const updatedUser = await user.save(); 
-    res.json(updatedUser);
+    const updatedUser = await user.save();
+    res.json({ success: true, user: updatedUser });
   } catch (error) {
     console.error("Update profile error:", error);
     res.status(500).json({ error: "Internal server error" });
   }
 });
-
  
 
 router.get("/me", auth, async (req, res) => {
@@ -149,3 +201,16 @@ router.post("/delete-media-file", (req, res) => {
   }
 });
 module.exports = router;
+
+// get others user profiles view by user
+router.get("/user/:id", async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id)
+      .select("-password -email") // hide sensitive info
+      .lean();
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+    res.json({ success: true, user });
+  } catch (err) {
+    res.status(500).json({ success: false, message: err.message });
+  }
+});

@@ -2,7 +2,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import ProjectFormModal from "./ProjectFormModal";
-import "./css/UserProjects.css";
+import "assets/styles/components/UserProjects.css";
 
 const UserProjects = () => {
   const storedUser = JSON.parse(

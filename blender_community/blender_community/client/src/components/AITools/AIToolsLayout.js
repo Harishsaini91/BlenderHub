@@ -11,7 +11,7 @@ import MaskingTool from "./tools/MaskingTool";
 import CompositingTool from "./tools/CompositingTool";
 import MotionTrackingTool from "./tools/MotionTrackingTool";
 import ImageGenerator from "./tools/ImageGenerator";
-import "./AIToolsLayout.css";
+import "assets/styles/components/AIToolsLayout.css";
 
 const toolsMap = {
   texture: { name: "Texture Generation", component: TextureTool },

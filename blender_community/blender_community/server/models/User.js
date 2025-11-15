@@ -49,10 +49,22 @@ const UserSchema = new Schema({
   members: { type: [MemberSchema], default: [] },
 
   projects: [{ type: Types.ObjectId, ref: "Project" }],
-  likes: [{ type: Types.ObjectId, ref: "Tool" }],
+  likes: [
+    {
+      itemId: { type: Types.ObjectId, required: true },
+      itemType: {
+        type: String,
+        enum: ["project", "media", "image", "video", "event", "tool", "other"],
+        required: true
+      },
+      likedAt: { type: Date, default: Date.now }
+    }
+  ],
+
   teams: [{ type: Types.ObjectId, ref: "Team" }],
   tutorials: [{ type: Types.ObjectId, ref: "Tutorial" }],
-  events: [{ type: Types.ObjectId, ref: "Event" }],
+  events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
+
   promotions: [{ type: Types.ObjectId, ref: "Promotion" }],
 
   // ✅ Notification references

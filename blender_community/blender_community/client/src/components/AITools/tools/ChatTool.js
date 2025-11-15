@@ -3,9 +3,9 @@ import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
 import { Send } from "lucide-react";
 import { speakText } from "../../../utils/speakText";
-import "./css/ChatTool.css";
 import { startVoiceToText } from "../../../utils/voiceToText";
 import { Mic } from "lucide-react"; // or any icon
+import "assets/styles/components/ChatTool.css";
 
 const OpenAIAssistant = () => {
   const [messages, setMessages] = useState([]);

@@ -3,7 +3,7 @@ import io from "socket.io-client";
 import ConnectionRequests from "./friend_request/ConnectionRequests";
 import TeamRequests from "./team_request/TeamRequests";
 import ConnectPeople from "../filter_people/ConnectPeople";
-import "./NotificationComponent.css";
+import "assets/styles/components/NotificationComponent.css";
 
   import ChallengeRequests from "./Challenge_request/ChallengeRequests";
 

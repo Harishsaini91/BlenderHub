@@ -1,22 +1,53 @@
-blender_community/
-├── client/
-│   ├── node_modules/
-│   ├── public/
-│   │   └── index.html
-│   ├── src/
-│   │   ├── App.css
-│   │   ├── App.js
-│   │   ├── App.test.js
-│   │   ├── index.css
-│   │   ├── index.js
-│   ├── .gitignore
-│   ├── package-lock.json
-│   ├── package.json
-│   └── README.md
-│
-├── server/
-│   ├── node_modules/
-│   ├── package-lock.json
-│   └── package.json
-│
-└── structure  (note: likely a file or folder, unclear from image)
+client/
+└── src/
+    ├── App.js                      # Entry point (Router: /, /auth, /profile)
+    ├── index.js
+    ├── pages/
+    │   └── Dashboard.js            # Main UI hub for logged-in users
+    ├── components/
+    │   ├── AITools/                # AI asset generation tools
+    │   ├── chat_and_share/         # Real-time chat system
+    │   ├── filter_people/          # Connect People system (followers)
+    │   ├── notification/           # Notifications list + logic
+    │   ├── profile/                # ProfilePage + related components
+    │   ├── project_views_submittion/  # Projects feed + upload
+    │   ├── Authpopup.js            # Login/Register popup
+    │   ├── DropdownMenu.js
+    │   └── (misc helpers)
+    ├── utils/
+    │   └── fetchMutualSuggestions.js
+    ├── App.css
+    └── index.css
+server/
+├── index.js                     # Entry point, Socket.IO + Express server
+├── middleware/
+│   ├── auth.js
+│   └── upload.js
+├── models/
+│   ├── ChatRoom_schema.js
+│   ├── Feedback_schema.js
+│   ├── Notification_schema.js
+│   └── Project_schema.js
+├── routes/
+│   ├── a_routes/
+│   ├── chatokn.js
+│   ├── feedback.js
+│   ├── filter_and_send_request.js
+│   ├── mutual_suggestions.js
+│   ├── profilepage_router.js
+│   ├── project_feed.js
+│   ├── team_request_router.js
+│   ├── upload_project.js
+│   ├── userrouter.js
+│   └── video_edit_routers/
+│       └── video_to_image_sequence.js
+├── uploads/
+│   ├── banner/
+│   ├── chat_files/
+│   ├── image/
+│   ├── media/
+│   └── videoedit/
+└── .env
+
+
+ 

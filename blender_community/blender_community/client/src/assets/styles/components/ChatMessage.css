@@ -1,0 +1,6 @@
+.chat-bubble { max-width:70%; padding:10px 12px; border-radius:12px; position:relative; }
+.chat-bubble.other { background:#f1f3f6; align-self:flex-start; }
+.chat-bubble.own { background:#d0ebff; align-self:flex-end; }
+.bubble-text { white-space:pre-wrap; word-break:break-word; }
+.bubble-file img, .bubble-file video { max-width:280px; max-height:220px; border-radius:8px; display:block; }
+.bubble-time { font-size:11px; color:#666; margin-top:6px; text-align:right; }

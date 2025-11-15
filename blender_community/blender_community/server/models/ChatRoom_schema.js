@@ -1,4 +1,5 @@
-// models/ChatRoom.js
+// blender_community\blender_community\server\models\ChatRoom_schema.js
+
 const mongoose = require("mongoose");
 const { Schema, Types } = mongoose;
 

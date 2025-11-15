@@ -1,7 +1,7 @@
 // ✅ Updated ProjectFormModal.jsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./css/ProjectFormModal.css";
+import "assets/styles/components/ProjectFormModal.css";
 
 const CATEGORY_OPTIONS = ["Modeling", "Animation", "Photography", "Design"];
 const STATUS_OPTIONS = ["draft", "published"];

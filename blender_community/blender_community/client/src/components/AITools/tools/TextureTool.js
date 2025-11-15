@@ -1,6 +1,6 @@
 // src/components/AITools/TextureTool.js
 import React, { useState } from "react";
-import "./css/TextureTool.css";
+import "assets/styles/components/TextureTool.css";
 
 const TextureTool = () => {
   const [prompt, setPrompt] = useState("");

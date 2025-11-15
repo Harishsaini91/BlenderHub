@@ -21,65 +21,74 @@ const LoginForm = () => {
         setForm({ ...form, [e.target.name]: e.target.value });
     };
 
-        const handleSubmit = async (e) => {
-            e.preventDefault();
-            setError("");
-    // console.log(form);
+    const handleSubmit = async (e) => {
+        e.preventDefault();
+        setError("");
+        // console.log(form);
 
 
-            try {
-                const res = await axios.post('http://localhost:5000/api/login', form);
+        try {
+            const res = await axios.post('http://localhost:5000/api/login', form);
 
-                if (res.data?.user) {
-                    const user = res.data.user;
+            if (res.data?.user && res.data?.token) {
+                const user = res.data.user;
+                const token = res.data.token;
 
-                    console.log(user);
+                console.log("✅ User logged in:", user);
+                console.log("🔑 Token received:", token);
 
-                    // Save user session
-                    sessionStorage.setItem("user", JSON.stringify(user));
-                    localStorage.setItem("user", JSON.stringify(user));
+                // ✅ Save token for authenticated routes
+                sessionStorage.setItem("token", token);
+                localStorage.setItem("token", token);
 
-                    // Inform main window
-                    window.opener.postMessage({ type: "LOGIN_SUCCESS", payload: user }, "*");
+                // ✅ Save user info
+                sessionStorage.setItem("user", JSON.stringify(user));
+                localStorage.setItem("user", JSON.stringify(user));
 
-                    // Close popup
-                    window.close();
-                } else {
-                    setError("Invalid server response.");
-                }
-            } catch (err) {
-                console.error("Login error:", err.message);
-                setError("Login failed. Please check credentials.");
+                // ✅ Optional: Attach token to user object
+                user.token = token;
+
+                // ✅ Notify parent window if using popup login
+                window.opener.postMessage({ type: "LOGIN_SUCCESS", payload: user }, "*");
+
+                // ✅ Close popup after success
+                window.close();
+            } else {
+                setError("Invalid server response: Missing user or token.");
             }
-        };
-
- 
-
-    return (
-        <>
-            <form onSubmit={handleSubmit} className="p-4 space-y-4">
-                <h2 className="text-xl font-bold">Login</h2>
-                {error && <div className="text-red-500">{error}</div>}
-                <input name="email" value={form.email} onChange={handleChange} placeholder="Email" className="border p-2 w-full" required />
-                <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Password" className="border p-2 w-full" required />
-                <button type="submit" className="bg-green-500 text-white px-4 py-2 w-full">Login</button>
-            </form>
-
-
-            <p className="text-sm mt-2">
-                Don’t have an account?{" "}
-                <span
-                    onClick={() => window.location.href = "/auth?mode=register"}
-                    className="switch-link"
-                >
-                    Register now
-                </span>
-            </p>
+        } catch (err) {
+            console.error("Login error:", err.message);
+            setError("Login failed. Please check credentials.");
+        }
+    }
 
 
 
-        </>
-    );
-};
+        return (
+            <>
+                <form onSubmit={handleSubmit} className="p-4 space-y-4">
+                    <h2 className="text-xl font-bold">Login</h2>
+                    {error && <div className="text-red-500">{error}</div>}
+                    <input name="email" value={form.email} onChange={handleChange} placeholder="Email" className="border p-2 w-full" required />
+                    <input name="password" type="password" value={form.password} onChange={handleChange} placeholder="Password" className="border p-2 w-full" required />
+                    <button type="submit" className="bg-green-500 text-white px-4 py-2 w-full">Login</button>
+                </form>
 
-export default LoginForm;
+
+                <p className="text-sm mt-2">
+                    Don’t have an account?{" "}
+                    <span
+                        onClick={() => window.location.href = "/auth?mode=register"}
+                        className="switch-link"
+                    >
+                        Register now
+                    </span>
+                </p>
+
+
+
+            </>
+        );
+    };
+
+    export default LoginForm;

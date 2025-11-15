@@ -3,9 +3,8 @@
 // client/src/components/notification/ConnectionRequests.js
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import "./ConnectionRequests.css";
 import moment from "moment";
-
+import "assets/styles/components/ConnectionRequests.css";
 
 
 const ConnectionRequests = ({ socket }) => {

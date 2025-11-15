@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
 import { Menu } from "lucide-react";
-import "./ToolSelectorDropdown.css";
+import "assets/styles/components/ToolSelectorDropdown.css";
 
 const ToolSelectorDropdown = ({ tools, activeKey, onSelect }) => {
   const [open, setOpen] = useState(false);

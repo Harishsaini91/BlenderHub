@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import axios from "axios";
-import "./css/ImageGenerator.css";
+import "assets/styles/components/ImageGenerator.css";
 
 // Set this to "" if you added a proxy in client/package.json
 // e.g. "proxy": "http://localhost:5000"

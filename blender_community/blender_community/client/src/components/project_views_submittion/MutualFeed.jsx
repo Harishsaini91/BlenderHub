@@ -1,8 +1,8 @@
 // File: project_views_submittion/MutualFeed.jsx
 import React, { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import "./css/mutual_feed.css";
 
+import "assets/styles/components/mutual_feed.css";
 
 
 

@@ -37,27 +37,55 @@ router.post('/register', upload.single('image'), async (req, res) => {
 });
 
 // POST /api/login
+const jwt = require("jsonwebtoken");
+
 router.post("/login", async (req, res) => {
-    
+  try {
     const { email, password } = req.body;
+
+    // 1️⃣ Check if user exists
     const user = await User.findOne({ email });
     if (!user) return res.status(404).json({ message: "User not found" });
 
-console.log(password, user.password);
-
-
-    // const valid = await bcrypt.compare(password, user.password);
-    // if (!valid) return res.status(401).json({ message: "Invalid credentials" });
-    if( password != user.password ){
-
-       return res.status(401).json({ message: "Invalid credentials" });
+    // 2️⃣ Validate password
+    // (If passwords are stored as plain text, keep this line)
+    if (password !== user.password) {
+      return res.status(401).json({ message: "Invalid credentials" });
     }
 
-    // Send session-safe data
-    // const { name, image, _id, } = user;
-    // res.status(200).json({ user: { _id, name, email, image } });
-    res.status(200).json({ user: user});
+    // 🔐 3️⃣ Generate JWT token
+    const token = jwt.sign(
+      {
+        _id: user._id,
+        name: user.name,
+        email: user.email,
+      },
+      process.env.JWT_SECRET || "mysecretkey", // ensure you have this in .env
+      { expiresIn: "7d" }
+    );
+
+    // 4️⃣ Prepare safe user data to send (exclude password)
+    const safeUser = {
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      image: user.image || null,
+      role: user.role || "user",
+    };
+
+    // 5️⃣ Send both token and user info
+    return res.status(200).json({
+      success: true,
+      message: "Login successful",
+      token,
+      user: safeUser,
+    });
+  } catch (err) {
+    console.error("Login error:", err);
+    return res.status(500).json({ message: "Server error" });
+  }
 });
+
 
 // Assuming this is inside a route/controller file
 
