@@ -230,5 +230,152 @@ router.get("/mutual/projects", async (req, res) => {
   }
 });
 
+ 
+// ------------------------------
+// router.get("/mutual/projects", async (req, res) => {
+//   const userId = req.query.userId;
+//   if (!userId) return res.status(400).send("Missing userId");
+
+//   const limit = parseInt(req.query.limit, 10) || 20;
+
+//   // parse exclude list (?exclude=id1,id2 or ?exclude[]=id1&exclude[]=id2)
+//   let exclude = req.query.exclude || req.query["exclude[]"] || "";
+//   let excludeIds = [];
+//   if (Array.isArray(exclude)) excludeIds = exclude;
+//   else if (typeof exclude === "string" && exclude.length) excludeIds = exclude.split(",").map(x => x.trim());
+
+//   try {
+//     const user = await User.findById(userId).lean();
+//     if (!user) {
+//       console.warn("mutual feed: user not found", userId);
+//       return res.status(404).send("User not found");
+//     }
+
+//     // ---------------------------
+//     // 1) Build mutual friends list
+//     // ---------------------------
+//     const mutualIds = [];
+//     for (const member of user.members || []) {
+//       try {
+//         const friend = await User.findById(member._id).lean();
+//         if (!friend) continue;
+//         const isMutual = Array.isArray(friend.members) && friend.members.some(m => m._id.toString() === userId);
+//         if (isMutual) mutualIds.push(friend._id);
+//       } catch (innerErr) {
+//         console.warn("mutual feed: failed to load friend", member._id, innerErr);
+//         continue;
+//       }
+//     }
+
+//     // ---------------------------
+//     // 2) Fetch project collections for mutuals (or fallback)
+//     // ---------------------------
+//     let docs;
+//     if (mutualIds.length > 0) {
+//       docs = await Project.find({ owner: { $in: mutualIds } })
+//         .populate("owner", "name image")
+//         .lean();
+//     } else {
+//       // FALLBACK: no mutuals — return recent public projects from everyone except the user
+//       console.info("mutual feed: no mutuals found for", userId, " — using fallback public feed");
+//       docs = await Project.find({ /* all owners */ })
+//         .populate("owner", "name image")
+//         .lean();
+//     }
+
+//     // ---------------------------
+//     // 3) Flatten projects into posts
+//     // ---------------------------
+//     const posts = [];
+//     for (const doc of docs || []) {
+//       // skip collections owned by the requesting user when in fallback
+//       if (!mutualIds.length && doc.owner && doc.owner._id.toString() === userId) continue;
+
+//       for (const p of doc.projects || []) {
+//         // respect visibility: when in fallback mode, only include published/public projects
+//         if (!mutualIds.length) {
+//           if (p.status && p.status !== "published") continue;
+//           if (p.visibility && p.visibility !== "public") continue;
+//         }
+
+//         // resilient media detection
+//         let mediaItems = [];
+//         if (Array.isArray(p.media) && p.media.length) mediaItems = p.media;
+//         else if (Array.isArray(p.files) && p.files.length) mediaItems = p.files;
+//         else if (Array.isArray(p.mediaItems) && p.mediaItems.length) mediaItems = p.mediaItems;
+
+//         posts.push({
+//           _id: p._id.toString(),
+//           title: p.title,
+//           description: p.description,
+//           media: (mediaItems || []).map(m => ({ url: m.url, type: m.type || "image" })),
+//           likes: p.likes || [],
+//           comments: p.comments || [],
+//           views: p.views || [],
+//           ownerId: doc.owner ? doc.owner._id : doc.owner, // some docs might not have populated owner
+//           ownerName: doc.owner ? doc.owner.name : doc.name,
+//           ownerImage: doc.owner ? doc.owner.image : undefined,
+//           createdAt: p.createdAt
+//         });
+//       }
+//     }
+
+//     const total = posts.length;
+//     // debug
+//     console.info(`mutual feed: user=${userId} mutualCount=${mutualIds.length} totalPosts=${total}`);
+
+//     // ---------------------------
+//     // If small dataset -> return ALL (FULL mode)
+//     // ---------------------------
+//     if (total < 50) {
+//       return res.json({
+//         mode: "FULL",
+//         items: shuffle(posts),
+//         returned: posts.length
+//       });
+//     }
+
+//     // ---------------------------
+//     // PAGED mode -> apply exclude + refill + sort + return `limit`
+//     // ---------------------------
+//     let available = posts.filter(p => !excludeIds.includes(p._id.toString()));
+
+//     // refill if too few remain after exclude
+//     if (available.length < limit) {
+//       const missing = limit - available.length;
+//       const refill = posts.filter(p => !available.some(a => a._id === p._id));
+//       available = [...available, ...refill.slice(0, missing)];
+//     }
+
+//     // sort by trend (likes+views) then by recent
+//     available.sort((a, b) => {
+//       const score = x => (x.likes?.length || 0) + (x.views?.length || 0);
+//       return (score(b) - score(a)) || (new Date(b.createdAt) - new Date(a.createdAt));
+//     });
+
+//     const finalItems = shuffle(available).slice(0, limit);
+
+//     return res.json({
+//       mode: "PAGED",
+//       items: finalItems,
+//       returned: finalItems.length
+//     });
+//   } catch (err) {
+//     console.error("Mutual feed error:", err);
+//     return res.status(500).send("Failed to load mutual feed");
+//   }
+// });
+
+// single shuffle implementation (Fisher-Yates)
+// function shuffle(arr) {
+//   const a = [...arr];
+//   for (let i = a.length - 1; i > 0; i--) {
+//     const j = Math.floor(Math.random() * (i + 1));
+//     [a[i], a[j]] = [a[j], a[i]];
+//   }
+//   return a;
+// }
+
+
 
 module.exports = router;

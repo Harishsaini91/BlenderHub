@@ -1,7 +1,9 @@
 // client/src/components/filter_people/connectPeople
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import "./ConnectPeople.css";
+
+import "assets/styles/components/ConnectPeople.css";
+
 import { openChatWindow } from "../../utils/openChatWindow";
 
 // const ConnectPeople = ({ user, socket, mode = "connection" }) => {

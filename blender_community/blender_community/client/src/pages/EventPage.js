@@ -40,7 +40,7 @@ const EventPage = () => {
     checkAccess();
   }, [idOrLink]);
 
-  async function checkAccess() {
+  async function checkAccess() { 
     setChecking(true);
 
     try {

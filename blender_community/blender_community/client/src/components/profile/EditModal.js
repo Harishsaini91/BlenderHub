@@ -192,7 +192,23 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
             </select>
 
             <label>Bio</label>
-            <textarea name="bio" value={form.bio} onChange={handleChange} />
+            <textarea
+              name="bio"
+              value={form.bio}
+              onChange={(e) => {
+                const value = e.target.value;
+
+                // Limit to 200 characters
+                if (value.length <= 200) {
+                  handleChange(e);
+                }
+              }}
+              maxLength={200}
+            />
+
+            <span className="bio-count">
+              {form.bio?.length || 0}/200
+            </span>
 
             <label>LinkedIn</label>
             <input name="linkedin" value={form.linkedin} onChange={handleChange} />

@@ -1,0 +1,209 @@
+/* ─────────────────────────────────────────────
+   ROOT CHAT LAYOUT — FIXED SIDEBAR + FLUID PANEL
+─────────────────────────────────────────────── */
+.chat-layout {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+  background: #f4f6f9;
+  overflow: hidden;   /* prevents page scroll & shaking */
+  position: relative;
+}
+
+/* ─────────────────────────────────────────────
+   LEFT SIDEBAR — FIXED WIDTH, FULL HEIGHT
+─────────────────────────────────────────────── */
+.chat-sidebar {
+  width: 320px;
+  min-width: 320px;        /* prevents shrinking */
+  height: 100%;
+  background: #ffffff;
+  border-right: 1px solid #e2e2e2;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  overflow: hidden;
+  position: relative;
+  z-index: 5;              /* ensures no overlap */
+}
+
+/* Top header area */
+.sidebar-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.sidebar-top h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+/* Search bar */
+.sidebar-search input {
+  width: 100%;
+  padding: 8px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #fafafa;
+  font-size: 14px;
+}
+
+/* Scroll area for chat list */
+.sidebar-list {
+  margin-top: 10px;
+  overflow-y: auto;
+  flex: 1;
+  padding-right: 6px;
+}
+
+/* Scrollbar refinement */
+.sidebar-list::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-list::-webkit-scrollbar-thumb {
+  background: #d0d0d0;
+  border-radius: 5px;
+}
+
+/* Individual chat user row */
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px;
+  cursor: pointer;
+  border-radius: 10px;
+  transition: 0.2s ease;
+}
+
+.sidebar-item:hover {
+  background: #f2f4f7;
+}
+
+/* Avatar section */
+.avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* Online indicator */
+.green-dot {
+  position: absolute;
+  right: 3px;
+  bottom: 3px;
+  width: 10px;
+  height: 10px;
+  background: #2ecc71;
+  border-radius: 50%;
+  border: 2px solid white;
+}
+
+/* Metadata text */
+.meta {
+  flex: 1;
+  min-width: 0;
+}
+
+.meta-top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 15px;
+  font-weight: 600;
+  color: #222;
+}
+
+.meta-bottom {
+  margin-top: 4px;
+  color: #666;
+  font-size: 13px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ─────────────────────────────────────────────
+   RIGHT CHAT PANEL — FULL WIDTH
+─────────────────────────────────────────────── */
+.chat-main {
+  flex: 1;
+  height: 100%;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* Welcome message when no chat selected */
+.chat-welcome {
+  margin: auto;
+  text-align: center;
+  color: #888;
+}
+
+.chat-welcome h2 {
+  font-size: 26px;
+  color: #333;
+  margin-bottom: 6px;
+}
+
+.chat-welcome p {
+  font-size: 15px;
+}
+
+/* Ensure the main area doesn't jiggle */
+.chat-main * {
+  transition: none !important;
+}
+
+
+/* Full screen app layout */
+.chat-layout {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: #f4f6f9;
+}
+
+/* LEFT PANEL — FIXED ALWAYS */
+.chat-sidebar {
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 320px;
+  height: 100vh;
+  background: #ffffff;
+  border-right: 1px solid #e2e2e2;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  z-index: 20; /* Always on top */
+}
+
+/* RIGHT PANEL — pushes nothing on left */
+.chat-main {
+  margin-left: 320px; /* Space for fixed sidebar */
+  height: 100vh;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* prevents shaking */
+}

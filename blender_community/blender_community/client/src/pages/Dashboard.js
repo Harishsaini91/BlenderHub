@@ -165,7 +165,15 @@ export default function Dashboard() {
       </div>
 
       {/* -------------------------------------------------- TOGGLE STRIP -------------------------------------------------- */}
-      <div className="toggle-strip" onClick={() => setMenuOpen(!menuOpen)}>
+      <div className="toggle-strip" onClick={() => {
+        const newState = !menuOpen;
+        setMenuOpen(newState);
+
+        // update CSS variable so chat components / layout can react
+        // adjust the widths to your preferred sizes (open=320px, closed=80px)
+        document.documentElement.style.setProperty("--dashboard-right-panel-width", newState ? "240px" : "80px");
+        document.documentElement.style.setProperty("--dashboard-left-panel-width", newState ? "calc(100% - 240px)" : "calc(100% - 80px)");
+      }}>
         <div className="dashboard-hamburger">☰</div>
       </div>
 

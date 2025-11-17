@@ -1,7 +1,6 @@
-
-// --- RegisterForm.js ---
 import React, { useState } from 'react';
 import axios from 'axios';
+import "../assets/styles/components/loginform.css";
 
 const RegisterForm = () => {
     const [form, setForm] = useState({ name: '', email: '', password: '', image: '' });
@@ -20,93 +19,81 @@ const RegisterForm = () => {
             formData.append("name", form.name);
             formData.append("email", form.email);
             formData.append("password", form.password);
-            formData.append("image", form.image); // File
+            formData.append("image", form.image);
 
-            for (let [key, value] of formData.entries()) {
-                console.log(`${key}:`, value);
-            }
-            await axios.post('http://localhost:5000/api/register', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data'
-                }
+            await axios.post("http://localhost:5000/api/register", formData, {
+                headers: { "Content-Type": "multipart/form-data" }
             });
 
-            // Send credentials back to login
             window.opener.postMessage({
                 type: 'REGISTER_SUCCESS',
                 payload: { email: form.email, password: form.password }
-            }, '*');
+            }, "*");
 
             window.close();
         } catch (err) {
             console.error("Register Error:", err.response?.data || err.message);
             setError('Registration failed. ' + (err.response?.data?.message || 'Please try again.'));
         }
-
     };
 
     return (
-        <>
-            <form onSubmit={handleSubmit} className="p-4 space-y-4">
-                <h2 className="text-xl font-bold">Register</h2>
-                {error && <div className="text-red-500">{error}</div>}
+        <div className="login-container">
+            <div className="login-card">
 
-                <input
-                    name="name"
-                    value={form.name}
-                    onChange={handleChange}
-                    placeholder="Name"
-                    className="border p-2 w-full"
-                    required
-                />
+                <form onSubmit={handleSubmit} className="space-y-4">
+                    <h2>Register</h2>
+                    {error && <div className="error-msg">{error}</div>}
 
-                <input
-                    name="email"
-                    value={form.email}
-                    onChange={handleChange}
-                    placeholder="Email"
-                    className="border p-2 w-full"
-                    required
-                />
+                    <input
+                        name="name"
+                        value={form.name}
+                        onChange={handleChange}
+                        placeholder="Name"
+                        required
+                    />
 
-                <input
-                    name="password"
-                    type="password"
-                    value={form.password}
-                    onChange={handleChange}
-                    placeholder="Password"
-                    className="border p-2 w-full"
-                    required
-                />
+                    <input
+                        name="email"
+                        value={form.email}
+                        onChange={handleChange}
+                        placeholder="Email"
+                        required
+                    />
 
-                <input
-                    type="file"
-                    name="image"
-                    accept="image/*"
-                    placeholder='user image'
-                    onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
-                    className="border p-2 w-full"
-                />
+                    <input
+                        name="password"
+                        type="password"
+                        value={form.password}
+                        onChange={handleChange}
+                        placeholder="Password"
+                        required
+                    />
 
-                <button type="submit" className="bg-blue-500 text-white px-4 py-2 w-full">Register</button>
-            </form>
+                    <input
+                        type="file"
+                        name="image"
+                        accept="image/*"
+                        onChange={(e) => setForm({ ...form, image: e.target.files[0] })}
+                    />
 
+                    <button type="submit" className="register-btn">
+                        Register
+                    </button>
+                </form>
 
+                <p className="switch-text">
+                    Already have an account?{" "}
+                    <span
+                        onClick={() => window.location.href = "/auth?mode=login"}
+                        className="switch-link"
+                    >
+                        Login here
+                    </span>
+                </p>
 
-
-            <p>
-                Already have an account?{" "}
-                <span
-                    onClick={() => window.location.href = "/auth?mode=login"}
-                    className="switch-link"
-                >
-                    Login here
-                </span>
-            </p>
-
-
-
-        </>
+            </div>
+        </div>
     );
 };
 

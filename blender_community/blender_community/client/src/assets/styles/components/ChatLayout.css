@@ -1,65 +1,53 @@
+/* ChatLayout.css
+   Parent layout for chat components.
+   ChatSidebar is a fixed column inside this container; ChatMain fills remaining width.
+*/
 .chat-layout {
   display: flex;
-  height: 100vh;
-  background-color: #f4f4f4;
-  font-family: sans-serif;
+  height: 100%;
+  width: 100%;
+  min-height: 0; /* prevents flex overflow */
+  overflow: hidden;
+  background: transparent;
+  font-family: "Inter", "Segoe UI", Roboto, sans-serif;
 }
 
-.no-chat {
-  flex: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: #999;
-  font-size: 18px;
-}
-
+/* Sidebar (chat list) - fixed column within chat area */
 .chat-sidebar {
+  flex: 0 0 320px;          /* fixed width column */
   width: 320px;
+  max-width: 320px;
+  min-width: 220px;
+  height: 100%;
+  overflow-y: auto;         /* vertical-only scroll */
+  overflow-x: hidden;
+  border-right: 1px solid #e8e8e8;
   background: #fff;
-  border-right: 1px solid #eee;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+/* make sidebar smooth when parent (dashboard) changes width */
+.chat-sidebar {
+  transition: width 0.22s ease;
+}
+
+/* Right panel - fills remaining space */
+.chat-main {
+  flex: 1 1 auto;
+  min-width: 0; /* critical to prevent horizontal overflow in flex children */
+  height: 100%;
   display: flex;
   flex-direction: column;
-  padding: 12px;
+  background: #f7f9fc;
+  overflow: hidden;
+  transition: margin 0.22s ease, width 0.22s ease;
 }
 
-.sidebar-top {
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  margin-bottom:8px;
+/* small helper for welcome state */
+.chat-welcome {
+  margin: auto;
+  text-align: center;
+  color: #6b7280;
+  padding: 24px;
 }
-
-.sidebar-search input {
-  width:100%;
-  padding:8px;
-  border-radius:6px;
-  border:1px solid #eee;
-}
-
-.sidebar-list {
-  margin-top:12px;
-  overflow:auto;
-  flex:1;
-}
-
-.sidebar-item {
-  display:flex;
-  gap:12px;
-  padding:10px;
-  border-radius:8px;
-  cursor:pointer;
-  align-items:center;
-}
-
-.sidebar-item:hover { background:#fafafa; }
-
-.avatar { position:relative; width:44px; height:44px; flex:0 0 44px; border-radius:8px; overflow:hidden; display:flex; align-items:center; justify-content:center; background:#ddd; }
-.avatar img { width:100%; height:100%; object-fit:cover; }
-.initials { font-weight:bold; color:#fff; font-size:16px; }
-
-.green-dot { position:absolute; right:2px; bottom:2px; width:10px; height:10px; background:#2ecc71; border-radius:50%; box-shadow:0 0 0 2px #fff; display:block; }
-
-.meta { flex:1; min-width:0; }
-.meta-top { display:flex; justify-content:space-between; align-items:center; }
-.meta-bottom { color:#666; font-size:13px; margin-top:4px; }

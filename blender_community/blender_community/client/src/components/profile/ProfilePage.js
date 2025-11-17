@@ -153,159 +153,156 @@ const ProfilePage = ({ userId = null, setProfileUserId = null }) => {
 
   if (!user) return <p>Loading profile...</p>;
 
-  return (
-    <div className="profile-container">
-      {/* ✅ Optional back button for other profiles */}
-      {userId && setProfileUserId && (
+return (
+  <div className="profile-container">
+
+    {/* Back Button for other profiles */}
+    {userId && setProfileUserId && (
+      <button
+        onClick={() => setProfileUserId(null)}
+        className="back-btn"
+      >
+        ← Back to Connections
+      </button>
+    )}
+
+    {/* ▬▬▬▬▬▬ BANNER ▬▬▬▬▬▬ */}
+    <div
+      className="banner-section"
+      style={{
+        backgroundImage: `url(http://localhost:5000/uploads/banner/${user.banner})`,
+      }}
+    >
+      {isSelfProfile && (
+        <div className="top-edit" onClick={() => handleEdit("basic")}>✏️</div>
+      )}
+
+      {/* Profile Image (overlapping) */}
+      <div className="profile-image">
+        <img
+          src={`http://localhost:5000/uploads/image/${user.image}`}
+          alt="User"
+        />
+      </div>
+    </div>
+
+    {/* ▬▬▬▬▬▬ USER INFO CARD (Name, Social, Chat) ▬▬▬▬▬▬ */}
+    <div className="profile-info-card">
+      <h2>{user.name}</h2>
+
+      {!isSelfProfile && (
         <button
-          onClick={() => setProfileUserId(null)}
-          style={{
-            background: "#444",
-            color: "white",
-            padding: "8px 12px",
-            borderRadius: "8px",
-            border: "none",
-            cursor: "pointer",
-            marginBottom: "10px",
-          }}
+          className="chat-start-btn"
+          onClick={() => openChatWindow(user._id)}
         >
-          ← Back to Connections
+          💬 Chat
         </button>
       )}
 
-      {/* ✅ Banner + Basic Info */}
-      <div
-        className="banner-section"
-        style={{
-          backgroundImage: `url(http://localhost:5000/uploads/banner/${user.banner})`,
-        }}
-      >
-        {/* Show edit only if it's the self-profile */}
-        {isSelfProfile && (
-          <div className="top-edit" onClick={() => handleEdit("basic")}>✏️</div>
-        )}
-
-        <div className="profile-image">
-          <img
-            src={`http://localhost:5000/uploads/image/${user.image}`}
-            alt="User"
-          />
-        </div>
-
-        <div className="info">
-          <h2>{user.name}</h2>
-
-          {/* ⭐ Chat button only when viewing other's profile */}
-  {!isSelfProfile && (
-  <button
-    className="chat-start-btn"
-    onClick={() => openChatWindow(user._id)}
-  >
-    💬 Chat
-  </button>
-)}
-
-
-
-          {(Array.isArray(user.bio) ? user.bio : [user.bio])
-            .filter(Boolean)
-            .map((line, i) => (
-              <p key={i}>{line}</p>
-            ))}
-
-          <div className="icons">
-            {(Array.isArray(user.linkedin) ? user.linkedin : [user.linkedin])
-              .filter(Boolean)
-              .map((link, i) => (
-                <a
-                  key={`linkedin-${i}`}
-                  href={link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  🔗 LinkedIn #{i + 1}
-                </a>
-              ))}
-
-            {(Array.isArray(user.github) ? user.github : [user.github])
-              .filter(Boolean)
-              .map((link, i) => (
-                <a
-                  key={`github-${i}`}
-                  href={link}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                >
-                  💻 GitHub #{i + 1}
-                </a>
-              ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ✅ Skills Section */}
-      <div className="middle-section">
-        {isSelfProfile && (
-          <div className="top-edit" onClick={() => handleEdit("skills")}>✏️</div>
-        )}
-        <h3>Skills</h3>
-        <ul className="skills-list">
-          {user.skills?.map((skill, i) => (
-            <li key={i}>{skill}</li>
+      {/* SOCIAL LINKS */}
+      <div className="icons">
+        {(Array.isArray(user.linkedin) ? user.linkedin : [user.linkedin])
+          .filter(Boolean)
+          .map((link, i) => (
+            <a
+              key={i}
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              🔗 LinkedIn {i + 1}
+            </a>
           ))}
-        </ul>
-      </div>
 
-      {/* ✅ Media Section */}
-      <div className="media-section">
-        {isSelfProfile && (
-          <div className="top-edit" onClick={() => handleEdit("media")}>✏️</div>
-        )}
-        <h3>Main Work</h3>
-
-        {user.media
-          ?.sort((a, b) => a.priority - b.priority)
-          .map((project, i) => (
-            <div key={i} className="media-project">
-              <h4>{project.title || "Untitled Project"}</h4>
-              <p>{project.description || "No description."}</p>
-              <div className="media-files">
-                {project.files
-                  ?.sort((a, b) => a.priority - b.priority)
-                  .map((file, j) => {
-                    const mediaUrl = `http://localhost:5000/uploads/media/${file.url}`;
-                    return file.type === "image" ? (
-                      <img
-                        key={j}
-                        src={mediaUrl}
-                        alt={`media-${j}`}
-                        style={{ width: "120px", marginRight: "10px" }}
-                      />
-                    ) : (
-                      <video
-                        key={j}
-                        controls
-                        src={mediaUrl}
-                        style={{ width: "160px", marginRight: "10px" }}
-                      />
-                    );
-                  })}
-              </div>
-            </div>
+        {(Array.isArray(user.github) ? user.github : [user.github])
+          .filter(Boolean)
+          .map((link, i) => (
+            <a
+              key={i}
+              href={link}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              💻 GitHub {i + 1}
+            </a>
           ))}
       </div>
-
-      {/* ✅ Edit Modal - only for self */}
-      {isSelfProfile && editingSection && (
-        <EditModal
-          section={editingSection}
-          user={user}
-          onSave={(data) => handleSave(data)}
-          onCancel={() => setEditingSection(null)}
-        />
-      )}
     </div>
-  );
+
+    {/* ▬▬▬▬▬▬ BIO SECTION — NEW CLEAN BLOCK ▬▬▬▬▬▬ */}
+    <div className="bio-section">
+      {(Array.isArray(user.bio) ? user.bio : [user.bio])
+        .filter(Boolean)
+        .map((line, i) => (
+          <p key={i}>{line}</p>
+        ))}
+    </div>
+
+    {/* ▬▬▬▬▬▬ SKILLS ▬▬▬▬▬▬ */}
+    <div className="middle-section">
+      {isSelfProfile && (
+        <div className="top-edit" onClick={() => handleEdit("skills")}>✏️</div>
+      )}
+      <h3>Skills</h3>
+
+      <ul className="skills-list">
+        {user.skills?.map((skill, i) => (
+          <li key={i}>{skill}</li>
+        ))}
+      </ul>
+    </div>
+
+    {/* ▬▬▬▬▬▬ MEDIA SECTION ▬▬▬▬▬▬ */}
+    <div className="media-section">
+      {isSelfProfile && (
+        <div className="top-edit" onClick={() => handleEdit("media")}>✏️</div>
+      )}
+
+      <h3>Main Work</h3>
+
+      {user.media
+        ?.sort((a, b) => a.priority - b.priority)
+        .map((project, i) => (
+          <div key={i} className="media-project">
+            <h4>{project.title || "Untitled Project"}</h4>
+            <p>{project.description || "No description."}</p>
+
+            <div className="media-files">
+              {project.files
+                ?.sort((a, b) => a.priority - b.priority)
+                .map((file, j) => {
+                  const mediaUrl = `http://localhost:5000/uploads/media/${file.url}`;
+                  return file.type === "image" ? (
+                    <img
+                      key={j}
+                      src={mediaUrl}
+                      alt={`media-${j}`}
+                    />
+                  ) : (
+                    <video
+                      key={j}
+                      controls
+                      src={mediaUrl}
+                    />
+                  );
+                })}
+            </div>
+          </div>
+        ))}
+    </div>
+
+    {/* EDIT MODAL */}
+    {isSelfProfile && editingSection && (
+      <EditModal
+        section={editingSection}
+        user={user}
+        onSave={(data) => handleSave(data)}
+        onCancel={() => setEditingSection(null)}
+      />
+    )}
+  </div>
+);
+
 }
 
 export default ProfilePage;
