@@ -41,37 +41,7 @@ const ProfilePage = ({ userId = null, setProfileUserId = null }) => {
   // 🔹 Check if viewing self or another user
   const isSelfProfile = !userId || userId === loggedInUserId;
 
-  // Load from session → local → DB → dummy
-  // useEffect(() => {
-  //   const sessionData = sessionStorage.getItem("user");
-  //   const localData = localStorage.getItem("user");
-
-  //   const init = async () => {
-  //     if (sessionData) {
-  //       setUser(JSON.parse(sessionData));
-  //     } else if (localData) {
-  //       setUser(JSON.parse(localData));
-  //       sessionStorage.setItem("user", localData);
-  //     } else {
-  //       try {
-  //         const res = await axios.get("http://localhost:5000/api/me");
-  //         if (res.data?.user) {
-  //           const fullUser = mergeUserData(DUMMY_USER, res.data.user);
-  //           const json = JSON.stringify(fullUser);
-  //           sessionStorage.setItem("user", json);
-  //           localStorage.setItem("user", json);
-  //           setUser(fullUser);
-  //         } else {
-  //           setUser(DUMMY_USER);
-  //         }
-  //       } catch {
-  //         setUser(DUMMY_USER);
-  //       }
-  //     }
-  //   };
-
-  //   init();
-  // }, []);
+   
 
   useEffect(() => {
     const init = async () => {

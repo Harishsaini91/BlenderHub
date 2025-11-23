@@ -5,12 +5,15 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
   const [form, setForm] = useState({ ...user });
   const [mediaIndex, setMediaIndex] = useState(null);
   const [newSkill, setNewSkill] = useState("");
-  const [location, setlocation] = useState("");
-  const [role, setrole] = useState("");
+  const [tempDeletedFiles, setTempDeletedFiles] = useState([]);
+
+  // NEW STATE FOR PROFILE IMAGE
+  const [imageFile, setImageFile] = useState(null);
+  const [previewImageUrl, setPreviewImageUrl] = useState("");
+
+  // NEW STATE FOR BANNER
   const [bannerFile, setBannerFile] = useState(null);
   const [previewBannerUrl, setPreviewBannerUrl] = useState("");
-  const [mediaPreviews, setMediaPreviews] = useState([]);
-  const [tempDeletedFiles, setTempDeletedFiles] = useState([]);
 
   useEffect(() => {
     if (section === "media") {
@@ -18,9 +21,13 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
     }
   }, [mediaIndex]);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) =>
+    setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleFileChange = async (e) => {
+  /*************************************************
+   * UPLOAD BANNER FILE
+   **************************************************/
+  const handleBannerUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
 
@@ -36,19 +43,61 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
         method: "POST",
         body: formData,
       });
+
       const data = await res.json();
+
       if (data.filename) {
-        setForm((prev) => ({ ...prev, banner: data.filename }));
+        // store full path
+        setForm((prev) => ({
+          ...prev,
+          banner: `/uploads/image/${data.filename}`,
+        }));
       }
     } catch (err) {
       console.error("Banner upload failed:", err);
     }
   };
 
-  const handleMediaFileUpload = async (files) => {
-    const newFiles = Array.from(files);
+  /*************************************************
+   * UPLOAD PROFILE IMAGE FILE
+   **************************************************/
+  const handleImageUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setImageFile(file);
+    const previewUrl = URL.createObjectURL(file);
+    setPreviewImageUrl(previewUrl);
 
     const formData = new FormData();
+    formData.append("image", file);
+
+    try {
+      const res = await fetch("http://localhost:5000/api/upload_image", {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.filename) {
+        setForm((prev) => ({
+          ...prev,
+          image: `/uploads/image/${data.filename}`,
+        }));
+      }
+    } catch (err) {
+      console.error("Image upload failed:", err);
+    }
+  };
+
+  /*************************************************
+   * MEDIA UPLOAD
+   **************************************************/
+  const handleMediaFileUpload = async (files) => {
+    const newFiles = Array.from(files);
+    const formData = new FormData();
+
     newFiles.forEach((file) => {
       formData.append("media", file);
     });
@@ -60,33 +109,48 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
       });
 
       const data = await res.json();
+
       if (!data.files || !Array.isArray(data.files)) {
         console.error("Unexpected upload response:", data);
         return;
       }
 
-      const uploadedFiles = data.files.map((fileObj, i) => ({
-        url: fileObj.filename,
-        type: fileObj.filename.endsWith(".mp4") || fileObj.filename.endsWith(".webm") ? "video" : "image",
+      const uploadedFiles = data.files.map((f, i) => ({
+        url: `/uploads/image/${f.filename}`,
+        type: f.filename.endsWith(".mp4") || f.filename.endsWith(".webm")
+          ? "video"
+          : "image",
         priority: i,
-        temp: true
+        temp: true,
       }));
 
-      setForm((prevForm) => {
-        const mediaCopy = [...(prevForm.media || [])];
-        if (!mediaCopy[mediaIndex]) return prevForm;
+      setForm((prev) => {
+        const mediaCopy = [...(prev.media || [])];
+        if (!mediaCopy[mediaIndex]) return prev;
 
-        const existingUrls = new Set((mediaCopy[mediaIndex].files || []).map(f => f.url));
-        const newUnique = uploadedFiles.filter(f => !existingUrls.has(f.url));
+        const existingUrls = new Set(
+          (mediaCopy[mediaIndex].files || []).map((file) => file.url)
+        );
 
-        mediaCopy[mediaIndex].files = [...(mediaCopy[mediaIndex].files || []), ...newUnique];
-        return { ...prevForm, media: mediaCopy };
+        const newUnique = uploadedFiles.filter(
+          (f) => !existingUrls.has(f.url)
+        );
+
+        mediaCopy[mediaIndex].files = [
+          ...(mediaCopy[mediaIndex].files || []),
+          ...newUnique,
+        ];
+
+        return { ...prev, media: mediaCopy };
       });
     } catch (err) {
       console.error("Upload failed:", err);
     }
   };
 
+  /*************************************************
+   * SKILLS HANDLING
+   **************************************************/
   const handleSkillAdd = () => {
     if (newSkill.trim()) {
       setForm({ ...form, skills: [...(form.skills || []), newSkill.trim()] });
@@ -100,24 +164,34 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
     setForm({ ...form, skills: updated });
   };
 
+  /*************************************************
+   * MEDIA TOOLS
+   **************************************************/
   const handleMediaPriorityUp = (index) => {
     if (index === 0) return;
     const mediaList = [...form.media];
-    [mediaList[index - 1], mediaList[index]] = [mediaList[index], mediaList[index - 1]];
+
+    [mediaList[index - 1], mediaList[index]] = [
+      mediaList[index],
+      mediaList[index - 1],
+    ];
+
     mediaList.forEach((m, i) => (m.priority = i));
+
     setForm({ ...form, media: mediaList });
   };
 
   const handleMediaEdit = (index) => setMediaIndex(index);
 
   const handleMediaDelete = (index) => {
-    if (window.confirm("Delete this project?")) {
-      const updated = [...form.media];
-      updated.splice(index, 1);
-      updated.forEach((m, i) => (m.priority = i));
-      setForm({ ...form, media: updated });
-      setMediaIndex(null);
-    }
+    if (!window.confirm("Delete this project?")) return;
+
+    const updated = [...form.media];
+    updated.splice(index, 1);
+    updated.forEach((m, i) => (m.priority = i));
+
+    setForm({ ...form, media: updated });
+    setMediaIndex(null);
   };
 
   const handleMediaUpdate = (key, value) => {
@@ -128,9 +202,11 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
 
   const handleMediaFileDelete = (fileIndex) => {
     const updated = [...form.media];
-    const fileToRemove = updated[mediaIndex].files[fileIndex];
+    const removed = updated[mediaIndex].files[fileIndex];
+
     updated[mediaIndex].files.splice(fileIndex, 1);
-    setTempDeletedFiles((prev) => [...prev, fileToRemove]);
+    setTempDeletedFiles((x) => [...x, removed]);
+
     setForm({ ...form, media: updated });
   };
 
@@ -141,34 +217,49 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
       files: [],
       priority: form.media?.length || 0,
     };
-    setForm({ ...form, media: [...(form.media || []), newMedia] });
+
+    setForm({
+      ...form,
+      media: [...(form.media || []), newMedia],
+    });
+
     setMediaIndex(form.media?.length || 0);
   };
 
+  /*************************************************
+   * FORM SUBMIT
+   **************************************************/
   const handleSubmit = () => {
     const updatedSection = {};
+
     if (section === "basic") {
       updatedSection.name = form.name?.trim();
-      updatedSection.bio = form.bio || [];
+      updatedSection.bio = form.bio;
+      updatedSection.github = form.github;
       updatedSection.linkedin = form.linkedin;
       updatedSection.location = form.location;
       updatedSection.role = form.role;
-      updatedSection.github = form.github;
+
+      // updated image & banner values
+      updatedSection.image = form.image;
       updatedSection.banner = form.banner;
     }
+
     if (section === "skills") {
       updatedSection.skills = form.skills?.filter((s) => s.trim());
     }
+
     if (section === "media") {
-      updatedSection.media = form.media.map(project => ({
+      updatedSection.media = form.media.map((project) => ({
         ...project,
-        files: project.files?.filter(f => !tempDeletedFiles.some(d => d.url === f.url)) || []
+        files: project.files?.filter(
+          (f) => !tempDeletedFiles.some((d) => d.url === f.url)
+        ),
       }));
     }
 
     updatedSection._id = user._id;
     updatedSection.email = user.email;
-    updatedSection.image = user.image;
 
     onSave(updatedSection);
   };
@@ -178,12 +269,19 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
       <div className="modal-content">
         <h3>Edit: {section}</h3>
 
+        {/** ---------------- BASIC SECTION ---------------- */}
         {section === "basic" && (
           <>
             <label>Name</label>
             <input name="name" value={form.name} onChange={handleChange} />
-            <label>location</label>
-            <input name="location" value={form.location} onChange={handleChange} />
+
+            <label>Location</label>
+            <input
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+            />
+
             <label>Role</label>
             <select name="role" value={form.role} onChange={handleChange}>
               <option value="beginner">Beginner</option>
@@ -195,88 +293,133 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
             <textarea
               name="bio"
               value={form.bio}
-              onChange={(e) => {
-                const value = e.target.value;
-
-                // Limit to 200 characters
-                if (value.length <= 200) {
-                  handleChange(e);
-                }
-              }}
               maxLength={200}
+              onChange={handleChange}
             />
 
-            <span className="bio-count">
-              {form.bio?.length || 0}/200
-            </span>
+            <span className="bio-count">{form.bio?.length || 0}/200</span>
 
             <label>LinkedIn</label>
-            <input name="linkedin" value={form.linkedin} onChange={handleChange} />
+            <input
+              name="linkedin"
+              value={form.linkedin}
+              onChange={handleChange}
+            />
 
             <label>GitHub</label>
             <input name="github" value={form.github} onChange={handleChange} />
 
+            {/** ---- BANNER UPLOAD ---- */}
             <label>Banner</label>
-            <input type="file" accept="image/*" onChange={handleFileChange} />
-            {previewBannerUrl && <img src={previewBannerUrl} alt="Preview" width="200" />}
+            <input type="file" accept="image/*" onChange={handleBannerUpload} />
+
+            {previewBannerUrl && (
+              <img src={previewBannerUrl} width="200" alt="Banner Preview" />
+            )}
+
+            {/** ---- PROFILE IMAGE UPLOAD ---- */}
+            <label>Profile Image</label>
+            <input type="file" accept="image/*" onChange={handleImageUpload} />
+
+            {previewImageUrl && (
+              <img
+                src={previewImageUrl}
+                width="120"
+                style={{ borderRadius: "10px", marginTop: "10px" }}
+                alt="Profile Preview"
+              />
+            )}
           </>
         )}
 
+        {/** ---------------- SKILLS SECTION ---------------- */}
         {section === "skills" && (
           <>
             <div style={{ display: "flex", gap: "0.5rem" }}>
-              <input value={newSkill} onChange={(e) => setNewSkill(e.target.value)} />
+              <input
+                value={newSkill}
+                onChange={(e) => setNewSkill(e.target.value)}
+              />
               <button onClick={handleSkillAdd}>Add</button>
             </div>
+
             <ul>
               {form.skills?.map((s, i) => (
                 <li key={i}>
-                  {s} <button onClick={() => handleSkillDelete(i)}>❌</button>
+                  {s}
+                  <button onClick={() => handleSkillDelete(i)}>❌</button>
                 </li>
               ))}
             </ul>
           </>
         )}
 
+        {/** ---------------- MEDIA SECTION ---------------- */}
         {section === "media" && (
           <>
             {mediaIndex === null ? (
               <>
                 <button onClick={handleAddNewMedia}>➕ Add New</button>
+
                 {(form.media || []).map((m, i) => (
                   <div key={i}>
-                    <strong>({m.priority}) {m.title}</strong>
+                    <strong>
+                      ({m.priority}) {m.title}
+                    </strong>
+
                     <button onClick={() => handleMediaPriorityUp(i)}>⬆</button>
                     <button onClick={() => handleMediaEdit(i)}>✏️ Edit</button>
-                    <button onClick={() => handleMediaDelete(i)}>🗑️ Delete</button>
+                    <button onClick={() => handleMediaDelete(i)}>🗑️</button>
                   </div>
                 ))}
               </>
             ) : (
               <>
                 <label>Title</label>
-                <input value={form.media[mediaIndex].title} onChange={(e) => handleMediaUpdate("title", e.target.value)} />
+                <input
+                  value={form.media[mediaIndex].title}
+                  onChange={(e) =>
+                    handleMediaUpdate("title", e.target.value)
+                  }
+                />
 
                 <label>Description</label>
-                <textarea value={form.media[mediaIndex].description} onChange={(e) => handleMediaUpdate("description", e.target.value)} />
+                <textarea
+                  value={form.media[mediaIndex].description}
+                  onChange={(e) =>
+                    handleMediaUpdate("description", e.target.value)
+                  }
+                />
 
                 <label>Upload Media</label>
-                <input type="file" multiple accept="image/*,video/*" onChange={(e) => handleMediaFileUpload(e.target.files)} />
+                <input
+                  type="file"
+                  multiple
+                  accept="image/*,video/*"
+                  onChange={(e) => handleMediaFileUpload(e.target.files)}
+                />
 
-                {(form.media[mediaIndex].files || []).map((file, i) => {
-                  const url = `http://localhost:5000/uploads/media/${file.url}`;
-                  return (
-                    <div key={i} style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-                      <span>#{i}</span>
-                      {file.type === "video" ? (
-                        <video src={url} width="80" controls />
-                      ) : (
-                        <img src={url} width="80" alt="media" />
-                      )}
-                      <button onClick={() => handleMediaFileDelete(i)}>❌</button>
-                    </div>
-                  );
-                })}
+                {(form.media[mediaIndex].files || []).map((file, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: "0.5rem",
+                    }}
+                  >
+                    <span>#{i}</span>
+
+                    {file.type === "video" ? (
+                      <video src={file.url} width="80" controls />
+                    ) : (
+                      <img src={file.url} width="80" alt="media" />
+                    )}
+
+                    <button onClick={() => handleMediaFileDelete(i)}>❌</button>
+                  </div>
+                ))}
+
                 <button onClick={() => setMediaIndex(null)}>Done</button>
               </>
             )}
@@ -284,14 +427,15 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
         )}
 
         <br />
+
+        {/** ---------------- ACTION BUTTONS ---------------- */}
         <div className="modal-actions">
           <button onClick={handleSubmit}>✅ Save</button>
           <button onClick={onCancel}>Cancel</button>
         </div>
       </div>
-
-
     </div>
   );
 };
+
 export default EditModal;

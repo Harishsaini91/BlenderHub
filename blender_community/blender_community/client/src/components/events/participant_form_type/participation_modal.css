@@ -1,0 +1,47 @@
+.participation-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.65);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10000;
+}
+
+.participation-modal {
+  background: #fff;
+  padding: 22px;
+  width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  border-radius: 12px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+}
+
+.participation-modal h2,
+.participation-modal h3 {
+  margin-bottom: 12px;
+}
+
+.mode-options {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+}
+
+.mode-btn,
+.submit-btn,
+.add-member-btn,
+.close-btn {
+  padding: 10px;
+  width: 100%;
+  margin-top: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: none;
+  font-weight: bold;
+}
+
+.close-btn {
+  background: #eee;
+}

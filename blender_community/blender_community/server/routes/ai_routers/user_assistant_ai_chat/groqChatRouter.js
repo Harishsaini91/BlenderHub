@@ -1,4 +1,5 @@
-// server/routes/ai_routers/groqChatRouter.js
+
+// blender_community\blender_community\server\routes\ai_routers\user_assistant_ai_chat\groqChatRouter.js
 const express = require("express");
 const axios = require("axios");
 const router = express.Router();

@@ -129,6 +129,8 @@ const MyEventBoard = ({ user }) => {
                                 onOpen={() => setSelected(ev._id)}
                             />
 
+
+
                             {/* Host options under each card */}
                             <div className="event-actions">
 

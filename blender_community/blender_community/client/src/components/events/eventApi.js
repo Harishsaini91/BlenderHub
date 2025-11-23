@@ -154,6 +154,44 @@ export const saveParticipation = (id, data) =>
   axios.post(`${BASE}/${id}/participate/save`, data);
 
 
+export async function submitSoloParticipation(eventId, data, token) {
+  return axios.post(
+    `${BASE}/${eventId}/participate/solo`,
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+}
+
+export async function submitTeamParticipation(eventId, data, token) {
+  return axios.post(
+    `${BASE}/${eventId}/participate/team`,
+    data,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+}
+
+// 
+ 
+ 
+export function markWinner(eventId, participantId, position, token) {
+  return axios.put(
+    `${BASE}/${eventId}/mark-winner`,
+    { participantId, position },
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+}
+
+
+
+
 /* ======================================================
    DEFAULT EXPORT
 ====================================================== */
@@ -174,4 +212,9 @@ export default {
   participateStart ,
   verifyOtp ,
   saveParticipation ,
+  submitSoloParticipation ,
+  submitTeamParticipation ,
+  markWinner
+
 };
+ 

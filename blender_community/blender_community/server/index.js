@@ -20,6 +20,8 @@ const teamRoutes = require("./routes/team_request_router");
 const chatRoutes = require("./routes/chatRoutes");
 const projectFeedRoutes = require("./routes/project_feed");
 const mutualSuggestionsRoute = require("./routes/mutual_suggestions");
+const events_solo_team = require("./routes/events_solo_team");
+const project_solo_team = require("./routes/projects_solo_team");
 
 const aiChatRouter = require("./routes/ai_routers/user_assistant_ai_chat/aiChatRouter");
 const groqChatRouter = require("./routes/ai_routers/user_assistant_ai_chat/groqChatRouter");
@@ -32,7 +34,7 @@ const videoRouter = require("./routes/video_edit_routers/video_to_image_sequence
 
 const app = express();
 const server = http.createServer(app);
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5000; 
 
 /* ===============================================================
    GLOBAL MIDDLEWARE / CORS / BODY PARSING
@@ -163,6 +165,9 @@ io.on("connection", (socket) => {
   });
 });
 
+
+
+
 /* ===============================================================
    ROUTES (keep same mounts as before)
    =============================================================== */
@@ -173,7 +178,6 @@ app.use("/api", feedbackRoutes);
 app.use("/api", filterRequestRoutes);
 app.use("/api/team", teamRoutes);
 app.use("/api/chat", chatRoutes);
-app.use("/api", projectFeedRoutes);
 app.use("/api/mutual", mutualSuggestionsRoute);
 
 // AI chat
@@ -190,6 +194,14 @@ app.use("/api/events", require("./routes/event_portal_router"));
 
 // Video Editing
 app.use("/api/video", videoRouter);
+
+
+// 
+app.use("/api", events_solo_team);
+app.use("/api", project_solo_team);
+app.use("/api", projectFeedRoutes);
+ 
+
 
 /* ===============================================================
    MONGODB

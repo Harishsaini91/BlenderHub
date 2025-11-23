@@ -18,6 +18,7 @@ const EventFormModal = ({ onClose, onSaved, user, existing }) => {
     endTime: "",
     visibility: "public",
     passkey: "",
+    eventMode: "solo",
   });
 
   const [files, setFiles] = useState([]);
@@ -33,6 +34,7 @@ const EventFormModal = ({ onClose, onSaved, user, existing }) => {
         description: existing.description || "",
         rules: existing.rules || "",
         prize: existing.prize || "",
+        eventMode: existing.eventMode || "solo",
         level: existing.level || "Beginner",
         contact: existing.contact || "",
         email: existing.email || user?.email || "",
@@ -152,6 +154,7 @@ const EventFormModal = ({ onClose, onSaved, user, existing }) => {
           />
 
           {/* Level */}
+          <label>level Type</label>
           <select
             value={form.level}
             onChange={(e) => setForm({ ...form, level: e.target.value })}
@@ -160,6 +163,17 @@ const EventFormModal = ({ onClose, onSaved, user, existing }) => {
             <option>Intermediate</option>
             <option>Advanced</option>
             <option>Other</option>
+          </select>
+
+          {/* eventMode */}
+          <label>Participation Type</label>
+          <select
+            value={form.eventMode}
+            onChange={(e) => setForm({ ...form, eventMode: e.target.value })}
+          >
+            <option value="solo">Solo Only</option>
+            <option value="team">Team Only</option>
+            <option value="both">Solo or Team</option>
           </select>
 
           {/* Contact */}
@@ -241,8 +255,8 @@ const EventFormModal = ({ onClose, onSaved, user, existing }) => {
                   ? "Updating..."
                   : "Creating..."
                 : isEditMode
-                ? "Update Event"
-                : "Create Event"}
+                  ? "Update Event"
+                  : "Create Event"}
             </button>
           </div>
         </form>

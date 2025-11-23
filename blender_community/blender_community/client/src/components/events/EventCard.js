@@ -48,9 +48,9 @@ const EventCard = ({
     }
 
     /** PRIVATE CHECK */
-  const handleOpen = () => {
-  onOpen?.(ev);
-};
+    const handleOpen = () => {
+        onOpen?.(ev);
+    };
 
     // ======================================================
     // 🔥 SMART TIME STATUS (updates every 10 min, or 1 min in last 10)
@@ -141,6 +141,13 @@ const EventCard = ({
             {/* TEXT BODY */}
             <div className="card-body" onClick={handleOpen}>
                 <h4 className="event-title">{ev.name}</h4>
+
+                <p className="event-mode-tag">
+                    {ev.eventMode === "solo" && "👤 Solo Event"}
+                    {ev.eventMode === "team" && "👥 Team Event"}
+                    {ev.eventMode === "both" && "🎭 Solo / Team Event"}
+                </p>
+
 
                 {statusLabel && (
                     <p className="event-status-tag">{statusLabel}</p>

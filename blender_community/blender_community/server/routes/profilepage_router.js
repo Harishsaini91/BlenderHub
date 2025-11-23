@@ -10,113 +10,104 @@ const upload = require('../middleware/upload');
  
  
 
-// router.post("/update-profile", async (req, res) => {
-
-//   try {
-//     const {
-//       _id,
-//       name,
-//       email,
-//       image,
-//       banner,
-//       bio = [],
-//       linkedin = [],
-//       github = [],
-//       skills = [], 
-//       media = []
-//     } = req.body;
-
-//     if (!_id) return res.status(400).json({ error: "User ID (_id) missing" });
-
-//     const user = await User.findById(_id);
-//     if (!user) return res.status(404).json({ error: "User not found" });
-
-//     // Update fields
-//     user.name = name || user.name;
-//     user.email = email || user.email;
-//     user.image = image || user.image;
-//     user.banner = banner || user.banner;
-//     user.bio = Array.isArray(bio) ? bio : [bio];
-//     user.linkedin = Array.isArray(linkedin) ? linkedin : [linkedin];
-//     user.github = Array.isArray(github) ? github : [github];
-//     user.skills = Array.isArray(skills) ? skills : [skills];
-
-//     // Validate media structure
-//     user.media = Array.isArray(media)
-//       ? media.map((m, i) => ({
-//           title: m.title || "",
-//           description: m.description || "",
-//           priority: m.priority ?? i,
-//           files: Array.isArray(m.files)
-//             ? m.files.map((f, j) => ({
-//                 url: f.url || "",
-//                 type: f.type || "image",
-//                 priority: f.priority ?? j
-//               }))
-//             : []
-//         }))
-//       : [];
-
-//     const updatedUser = await user.save(); 
-//     res.json(updatedUser);
-//   } catch (error) {
-//     console.error("Update profile error:", error);
-//     res.status(500).json({ error: "Internal server error" });
-//   }
-// });
-
-
-
 router.post("/update-profile", auth, async (req, res) => {
   try {
-    const loggedInUserId = req.user.id; // ✅ comes from verified JWT/session
+    const loggedInUserId = req.user.id; // from auth middleware
+
     const {
       name,
       email,
       image,
       banner,
-      bio = [],
-      linkedin = [],
-      github = [],
-      skills = [],
-      media = []
+      bio,
+      linkedin,
+      github,
+      skills,
+      media
     } = req.body;
 
     const user = await User.findById(loggedInUserId);
-    if (!user) return res.status(404).json({ error: "User not found" });
+    if (!user)
+      return res.status(404).json({ success: false, message: "User not found" });
 
-    // ✅ Update only their own data
-    user.name = name || user.name;
-    user.email = email || user.email;
-    user.image = image || user.image;
-    user.banner = banner || user.banner;
-    user.bio = Array.isArray(bio) ? bio : [bio];
-    user.linkedin = Array.isArray(linkedin) ? linkedin : [linkedin];
-    user.github = Array.isArray(github) ? github : [github];
-    user.skills = Array.isArray(skills) ? skills : [skills];
+    /**********************************************
+     * BASIC FIELDS
+     **********************************************/
+    if (name) user.name = name;
+    if (email) user.email = email;
 
-    user.media = Array.isArray(media)
-      ? media.map((m, i) => ({
-          title: m.title || "",
-          description: m.description || "",
-          priority: m.priority ?? i,
-          files: Array.isArray(m.files)
-            ? m.files.map((f, j) => ({
-                url: f.url || "",
-                type: f.type || "image",
-                priority: f.priority ?? j
-              }))
-            : []
-        }))
-      : user.media;
+    // STORE FULL IMAGE PATH
+    if (image) user.image = image.startsWith("/uploads")
+      ? image
+      : `/uploads/image/${image}`;
 
+    // STORE FULL BANNER PATH
+    if (banner) user.banner = banner.startsWith("/uploads")
+      ? banner
+      : `/uploads/image/${banner}`;
+
+    // bio is simple string
+    if (typeof bio === "string") user.bio = bio;
+
+    // linkedin & github should remain array
+    if (linkedin) {
+      user.linkedin = Array.isArray(linkedin)
+        ? linkedin
+        : [linkedin];
+    }
+
+    if (github) {
+      user.github = Array.isArray(github)
+        ? github
+        : [github];
+    }
+
+    // skills array
+    if (skills) {
+      user.skills = Array.isArray(skills)
+        ? skills.filter((s) => s.trim())
+        : [skills];
+    }
+
+    /**********************************************
+     * MEDIA SECTION
+     **********************************************/
+    if (media && Array.isArray(media)) {
+      user.media = media.map((m, index) => ({
+        title: m.title || "",
+        description: m.description || "",
+        priority: m.priority ?? index,
+        files: Array.isArray(m.files)
+          ? m.files.map((f, fileIndex) => ({
+              url: f.url.startsWith("/uploads")
+                ? f.url
+                : `/uploads/image/${f.url}`,
+              type: f.type || "image",
+              priority: f.priority ?? fileIndex
+            }))
+          : []
+      }));
+    }
+
+    /**********************************************
+     * SAVE
+     **********************************************/
     const updatedUser = await user.save();
-    res.json({ success: true, user: updatedUser });
+
+    res.json({
+      success: true,
+      user: updatedUser
+    });
+
   } catch (error) {
     console.error("Update profile error:", error);
-    res.status(500).json({ error: "Internal server error" });
+    res.status(500).json({
+      success: false,
+      message: "Internal server error"
+    });
   }
 });
+
  
 
 router.get("/me", auth, async (req, res) => {
@@ -163,21 +154,7 @@ router.post("/upload_image", (req, res) => {
 
 
 
-// router.post("/delete-media-file", (req, res) => {
-//   const { filename } = req.body;
-//   if (!filename) return res.status(400).json({ error: "Filename required" });
-
-//   const filepath = path.join(__dirname, "../uploads/media", filename);
-//   fs.unlink(filepath, (err) => {
-//     if (err) {
-//       console.error("File delete error:", err.message);
-//       return res.status(500).json({ error: "Failed to delete file" });
-//     }
-//     res.json({ success: true });
-//   });
-// });
-
-
+ 
 
 router.post("/delete-media-file", (req, res) => {
   const { filename } = req.body;

@@ -1,14 +1,19 @@
+// blender_community\server\routes\ai_routers\user_assistant_ai_chat\aiChatRouter.js
 const express = require("express");
-const axios = require("axios");
-const router = express.Router();
+const dns = require("dns");
+dns.setServers(["8.8.8.8", "1.1.1.1"]);  // 🔥 Force DNS fallback
 
+const axios = require("axios").create({
+  timeout: 25000,
+  family: 4   // 🔥 Force IPv4 only
+});
+
+const router = express.Router();
 const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 
-// POST /api/openrouter/chat
 router.post("/openrouter/chat", async (req, res) => {
-    console.log("✅ Received OpenRouter Chat POST");
-    console.log(OPENROUTER_API_KEY);
-    
+  console.log("✅ Received OpenRouter Chat POST");
+
   const { prompt, model = "mistralai/mistral-7b-instruct" } = req.body;
 
   if (!prompt) {
@@ -29,17 +34,19 @@ router.post("/openrouter/chat", async (req, res) => {
         headers: {
           "Authorization": `Bearer ${OPENROUTER_API_KEY}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "http://localhost:3000", // or your site URL
-          "X-Title": "Blender Artist AI Assistant"
+          "HTTP-Referer": "http://localhost:3000",
+          "X-Title": "Blender Artist AI Assistant",
         }
       }
     );
 
-    const aiMessage = response.data.choices?.[0]?.message?.content;
-    res.json({ reply: aiMessage || "No response from AI" });
+    return res.json({
+      reply: response.data?.choices?.[0]?.message?.content || "No response"
+    });
+
   } catch (err) {
     console.error("❌ OpenRouter error:", err.response?.data || err.message);
-    res.status(500).json({ error: "Failed to get response from OpenRouter" });
+    return res.status(500).json({ error: "Failed to contact OpenRouter." });
   }
 });
 

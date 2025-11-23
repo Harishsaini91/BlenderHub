@@ -13,7 +13,11 @@ import ChatLayout from "../components/chat_and_share/chat/ChatLayout";
 
 import EventList from "../components/events/EventList";
 import MyEventBoard from "../components/events/MyEventBoard";
+import Make_project from "../components/projects/longterm/LongTermProjectWrapper";
 import "assets/styles/pages/Dashboard.css";
+
+import LongTermProjectWrapper from "../components/projects/longterm/LongTermProjectWrapper";
+
 
 
 const menuItems = [
@@ -28,12 +32,14 @@ const menuItems = [
   "Mutual_project_scroller",
   "My created Events",
   "Event Board",
+  "Make_Project",
 ];
 
 export default function Dashboard() {
-  const [activeKey, setActiveKey] = useState("Profile");
+  const [activeKey, setActiveKey] = useState("Event Board");
   const [profileUserId, setProfileUserId] = useState(null);
   const [menuOpen, setMenuOpen] = useState(true);
+  const [showLongTermProject, setShowLongTermProject] = useState(false);
 
   // user state
   const [user, setUser] = useState(() => {
@@ -216,6 +222,31 @@ export default function Dashboard() {
 
           {activeKey === "MainProjectView" &&
             (user ? <MainProjectView user={user} /> : <LoginMessage />)}
+
+          {/* {activeKey === "Make_Project" && (
+            <div>
+              <button className="btn" onClick={() => setShowLongTermProject(true)}>
+                Create Long-term Project
+              </button>
+
+              {showLongTermProject && (
+                <LongTermProjectWrapper
+                  user={user}
+                  onClose={() => setShowLongTermProject(false)}
+                />
+              )}
+            </div>
+          )} */}
+
+          {activeKey === "Make_Project" && (
+            <LongTermProjectWrapper
+              user={user}
+              
+            />
+          )}
+
+
+
 
           {activeKey === "Mutual_project_scroller" && (
             <Mutual_project_scroller user={user} />

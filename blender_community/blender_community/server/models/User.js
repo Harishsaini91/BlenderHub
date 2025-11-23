@@ -61,7 +61,10 @@ const UserSchema = new Schema({
     }
   ],
 
-  teams: [{ type: Types.ObjectId, ref: "Team" }],
+  // teams: [{ type: Types.ObjectId, ref: "Team" }],
+
+  teams: [{ type: mongoose.Schema.Types.ObjectId, ref: "LongTermProjectTeam" }],
+
   tutorials: [{ type: Types.ObjectId, ref: "Tutorial" }],
   events: [{ type: mongoose.Schema.Types.ObjectId, ref: "Event" }],
 
@@ -69,6 +72,16 @@ const UserSchema = new Schema({
 
   // ✅ Notification references
   notifications: [{ type: Types.ObjectId, ref: "Notification" }],
+
+  eventsParticipated: [
+  {
+    eventId: { type: Schema.Types.ObjectId, ref: "Event", required: true },
+    teamId: { type: Schema.Types.ObjectId, ref: "EventParticipationTeam", default: null },
+    participatedAs: { type: String, enum: ["solo", "team"], required: true },
+    date: { type: Date, default: Date.now }
+  }
+],
+
 
   // ✅ For caching mutual fetch
   lastMutualFetch: { type: Date, default: null }

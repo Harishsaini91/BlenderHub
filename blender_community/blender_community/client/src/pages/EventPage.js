@@ -8,9 +8,20 @@ import {
   verifyEventPasskey,
 } from "../components/events/eventApi";
 
+import EventParticipationWrapper from "../components/events/participant_form_type/EventParticipationWrapper";
+import ParticipantList from "../components/events/participant_form_type/ParticipantList";
+
 
 const EventPage = () => {
   const { idOrLink } = useParams();
+  const [openParticipation, setOpenParticipation] = useState(false);
+  const [resendTimer, setResendTimer] = useState(0);  // countdown seconds
+  const [canResend, setCanResend] = useState(true);   // disable button
+  const [eventState, setEventState] = useState({
+    eventNotStarted: false,
+    eventLive: false,
+    eventEnded: false,
+  });
 
   const [event, setEvent] = useState(null);
   const [status, setStatus] = useState("");
@@ -40,7 +51,7 @@ const EventPage = () => {
     checkAccess();
   }, [idOrLink]);
 
-  async function checkAccess() { 
+  async function checkAccess() {
     setChecking(true);
 
     try {
@@ -99,7 +110,12 @@ const EventPage = () => {
     const start = new Date(ev.startTime);
     const end = ev.endTime ? new Date(ev.endTime) : null;
 
-    if (now < start) {
+    let eventNotStarted = now < start;
+    let eventLive = end && now >= start && now <= end;
+    let eventEnded = end && now > end;
+
+    // SET STATUS TEXT
+    if (eventNotStarted) {
       const diff = start - now;
       const mins = Math.floor(diff / 60000);
       const hours = Math.floor(mins / 60);
@@ -114,12 +130,17 @@ const EventPage = () => {
       if (m > 0) str += `${m}m`;
 
       setStatus(`⏳ Upcoming • ${str}`);
-    } else if (start && end && now >= start && now <= end) {
+    } else if (eventLive) {
       setStatus("🟢 Live Now");
     } else {
       setStatus("🔴 Event Ended");
     }
+
+    // SAVE STATE FOR UI
+    setEventState({ eventNotStarted, eventLive, eventEnded });
   }
+
+
 
   // ==============================================
   // PARTICIPATION (OTP + FORM)
@@ -131,6 +152,22 @@ const EventPage = () => {
     if (res.data.success) {
       alert("OTP sent!");
       setStep(2);
+
+
+      // Start Countdown
+      setCanResend(false);
+      setResendTimer(30); // 30 seconds
+
+      const interval = setInterval(() => {
+        setResendTimer((prev) => {
+          if (prev <= 1) {
+            clearInterval(interval);
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
     } else {
       alert(res.data.message);
     }
@@ -140,6 +177,7 @@ const EventPage = () => {
     const res = await verifyOtp(event._id, { email, otp });
 
     if (res.data.success) {
+
       if (res.data.participant) {
         const p = res.data.participant;
         setForm({
@@ -149,10 +187,14 @@ const EventPage = () => {
           skill: p.skill || "",
         });
       }
-      setStep(3);
+
+      // Open Solo/Team UI
+      setOpenParticipation(true);
+
     } else {
       alert(res.data.message);
     }
+
   }
 
   async function submitForm(e) {
@@ -199,6 +241,17 @@ const EventPage = () => {
       <h1>{event.name}</h1>
       <p className="event-status">{status}</p>
 
+
+      {/* NEW: event mode indicator */}
+      <p className="event-mode">
+        Participation Type: <b>
+          {event.eventMode === "solo" && "Solo Only"}
+          {event.eventMode === "team" && "Team Only"}
+          {event.eventMode === "both" && "Solo or Team"}
+        </b>
+      </p>
+
+
       <div className="event-host">Hosted by: <b>{event.username}</b></div>
 
       <p className="muted">
@@ -214,10 +267,34 @@ const EventPage = () => {
       </div>
 
       <p className="event-description">{event.description}</p>
+      {/* EVENT PHASE RENDERING — UPCOMING / LIVE / ENDED */}
 
-      {/* Participation System */}
-      {!submitted ? (
+      {eventState.eventNotStarted && (
+        <div className="phase-box upcoming">
+          <button className="start-btn" onClick={() => setStep(1)}>
+            Start Participation
+          </button>
+        </div>
+      )}
+
+      {eventState.eventLive && (
+        <div className="phase-box live">
+          <p className="live-banner">🟢 Event is Live — Participation Closed</p>
+        </div>
+      )}
+
+      {eventState.eventEnded && (
+        <div className="phase-box ended">
+          <h3>🏆 Participants</h3>
+          <ParticipantList participants={event.participants} />
+        </div>
+      )}
+
+
+      {/* BEFORE EVENT START — allow registration */}
+      {eventState.eventNotStarted && !submitted && (
         <div className="participation-box">
+
           {step === 1 && (
             <div className="participate-step">
               <h3>Start Participation</h3>
@@ -233,35 +310,109 @@ const EventPage = () => {
               <input placeholder="Enter OTP" value={otp}
                 onChange={(e) => setOtp(e.target.value)} />
               <button onClick={confirmOtp}>Verify</button>
+
+              <div className="resend-box">
+                {canResend ? (
+                  <button onClick={sendOtp} className="resend-btn">
+                    Resend OTP
+                  </button>
+                ) : (
+                  <p className="countdown">
+                    Resend OTP in <b>{resendTimer}s</b>
+                  </p>
+                )}
+              </div>
             </div>
           )}
 
-          {step === 3 && (
-            <form className="participate-form" onSubmit={submitForm}>
-              <h3>Your Details</h3>
-              <input placeholder="Full Name"
-                value={form.name}
-                onChange={(e) => setForm({ ...form, name: e.target.value })} />
-
-              <input placeholder="Phone Number"
-                value={form.phone}
-                onChange={(e) => setForm({ ...form, phone: e.target.value })} />
-
-              <input placeholder="Portfolio / Instagram Link"
-                value={form.portfolio}
-                onChange={(e) => setForm({ ...form, portfolio: e.target.value })} />
-
-              <textarea placeholder="Skills"
-                value={form.skill}
-                onChange={(e) => setForm({ ...form, skill: e.target.value })} />
-
-              <button type="submit">Submit</button>
-            </form>
-          )}
         </div>
-      ) : (
+      )}
+      :{submitted && (
         <p className="success">🎉 Participation Submitted</p>
       )}
+
+
+
+      {openParticipation && (
+        <EventParticipationWrapper
+          event={event}
+          user={{ email }}     // email used in solo/team forms
+          onClose={() => setOpenParticipation(false)}
+        />
+      )}
+
+
+
+      {eventState.eventEnded && (
+        <div className="participants-section">
+
+          <h2>Participants & Results</h2>
+
+          {event.participants?.length === 0 && (
+            <p>No participants registered.</p>
+          )}
+
+          {event.participants?.length > 0 && (
+            <>
+              {/* WINNERS FIRST */}
+              <h3>🏆 Winners</h3>
+              <div className="winner-list">
+                {event.participants
+                  .filter(p => p.position)      // position = {1,2,3}
+                  .sort((a, b) => a.position - b.position)
+                  .map((p) => (
+                    <div className="winner-card" key={p._id}>
+                      <img
+                        src={p.image}
+                        alt=""
+                        className="winner-img"
+                        onClick={() => window.location.href = `/profile/${p.userId}`}
+                      />
+                      <h4>{p.name}</h4>
+                      <p>Position: #{p.position}</p>
+                      <p className="team">
+                        {p.teamName || "Solo Participant"}
+                      </p>
+                      {p.github && (
+                        <a href={p.github} target="_blank" rel="noreferrer">
+                          GitHub ↗
+                        </a>
+                      )}
+                    </div>
+                  ))}
+              </div>
+
+              {/* ALL PARTICIPANTS */}
+              <h3 style={{ marginTop: 24 }}>All Participants</h3>
+              <div className="participant-list">
+                {event.participants.map((p) => (
+                  <div className="participant-card" key={p._id}>
+                    <img
+                      src={p.image}
+                      alt=""
+                      onClick={() => window.location.href = `/profile/${p.userId}`}
+                    />
+
+                    <div>
+                      <h4>{p.name}</h4>
+                      <p>{p.teamName || "Solo Participant"}</p>
+                      {p.github && (
+                        <a href={p.github} target="_blank" rel="noreferrer">
+                          GitHub ↗
+                        </a>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+        </div>
+      )}
+
+
+
     </div>
   );
 };

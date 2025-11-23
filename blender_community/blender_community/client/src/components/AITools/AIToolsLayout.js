@@ -27,7 +27,7 @@ const toolsMap = {
 };
 
 const AIToolsLayout = () => {
-  const [activeToolKey, setActiveToolKey] = useState("ImageGenerator");
+  const [activeToolKey, setActiveToolKey] = useState("chat");
   const [gapMode, setGapMode] = useState(true);
 
   const ActiveComponent = toolsMap[activeToolKey].component;

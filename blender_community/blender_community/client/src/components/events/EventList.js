@@ -21,37 +21,37 @@ const EventList = ({ user }) => {
     // =========================================================
     // LOAD ALL EVENTS (PUBLIC LIST)
     // =========================================================
- async function load() {
-  setLoading(true);
-  setError(null);
+    async function load() {
+        setLoading(true);
+        setError(null);
 
-  try {
-    const res = await api.fetchEvents();
+        try {
+            const res = await api.fetchEvents();
 
-    if (res.data?.success) {
-      const evs = res.data.events || [];
+            if (res.data?.success) {
+                const evs = res.data.events || [];
 
-      const sorted = evs.sort((a, b) => {
-        const av = typeof a.votes === "number" ? a.votes : 0;
-        const bv = typeof b.votes === "number" ? b.votes : 0;
+                const sorted = evs.sort((a, b) => {
+                    const av = typeof a.votes === "number" ? a.votes : 0;
+                    const bv = typeof b.votes === "number" ? b.votes : 0;
 
-        if (bv !== av) return bv - av; // votes DESC
-        return new Date(b.createdAt) - new Date(a.createdAt); // date DESC
-      });
+                    if (bv !== av) return bv - av; // votes DESC
+                    return new Date(b.createdAt) - new Date(a.createdAt); // date DESC
+                });
 
-      setEvents(sorted);
-    } else {
-      setEvents([]);
-      setError(res.data?.message || "Failed to load events.");
+                setEvents(sorted);
+            } else {
+                setEvents([]);
+                setError(res.data?.message || "Failed to load events.");
+            }
+        } catch (err) {
+            console.error("Failed to fetch events:", err);
+            setEvents([]);
+            setError("Failed to fetch events.");
+        } finally {
+            setLoading(false);
+        }
     }
-  } catch (err) {
-    console.error("Failed to fetch events:", err);
-    setEvents([]);
-    setError("Failed to fetch events.");
-  } finally {
-    setLoading(false);
-  }
-}
 
 
     useEffect(() => {
@@ -92,6 +92,15 @@ const EventList = ({ user }) => {
                                 onOpen={(e) => setSelected(e)}
                                 onShare={(e) => handleShare(e)}
                             />
+
+                            {/* NEW — Event Mode Indicator */}
+                            <p className="event-mode-label">
+                                Participation: <b>
+                                    {ev.eventMode === "solo" && "Solo Only"}
+                                    {ev.eventMode === "team" && "Team Only"}
+                                    {ev.eventMode === "both" && "Solo or Team"}
+                                </b>
+                            </p>
 
                             {/* Under-card action buttons */}
                             <div className="card-actions-compact">

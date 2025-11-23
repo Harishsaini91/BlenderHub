@@ -10,7 +10,7 @@ const fs = require("fs");
 const shortid = require("shortid");
 const mongoose = require("mongoose");
 
-const Event = require("../models/Event_schema");
+const Event = require("../models/Event/Event");
 
 // Defensive require for User model (User or Users)
 let User;
@@ -85,18 +85,28 @@ async function addSharedWith(eventId, sharedObj) {
 router.post("/create", authenticate, upload.array("media", 12), async (req, res) => {
   try {
     const body = req.body || {};
-    if (!body.name || body.name.trim() === "")
-      return res.status(400).json({ success: false, message: "Event name required" });
 
+    if (!body.name || body.name.trim() === "")
+      return res.status(400).json({
+        success: false,
+        message: "Event name required",
+      });
+
+    // MEDIA
     const files = (req.files || []).map((f) => ({
       url: `/uploads/events/${f.filename}`,
       filename: f.filename,
       type: (f.mimetype || "").includes("video") ? "video" : "image",
     }));
 
+    // EVENT LINK + PASSKEY
     const eventLink = `${shortid.generate()}-${Date.now().toString(36)}`;
-    const passkey = body.visibility === "private" ? body.passkey || shortid.generate() : null;
+    const passkey =
+      body.visibility === "private"
+        ? body.passkey || shortid.generate()
+        : null;
 
+    // 🔥 MAIN EVENT SAVE
     const event = new Event({
       userId: req.user._id,
       username: req.user.name || req.user.username || "Unknown",
@@ -114,24 +124,36 @@ router.post("/create", authenticate, upload.array("media", 12), async (req, res)
       visibility: body.visibility || "public",
       passkey,
       eventLink,
+
+      // 🔥 FIXED — SAVE PARTICIPATION TYPE
+      eventMode: body.eventMode || "solo",
+
+      // optional team limit
+      maxTeamSize: body.maxTeamSize ? Number(body.maxTeamSize) : 1,
     });
 
     await event.save();
 
-    // link to user if model exists
+    // LINK TO USER
     if (User) {
       try {
-        await User.findByIdAndUpdate(req.user._id, { $addToSet: { events: event._id } });
+        await User.findByIdAndUpdate(req.user._id, {
+          $addToSet: { events: event._id },
+        });
       } catch (uerr) {
         console.warn("Could not link event to user:", uerr.message);
       }
     }
 
-    // socket notify
+    // SOCKET BROADCAST
     if (global._io) {
       try {
-        global._io.emit("newEventCreated", { eventId: event._id, eventName: event.name, username: event.username });
-      } catch (e) {}
+        global._io.emit("newEventCreated", {
+          eventId: event._id,
+          eventName: event.name,
+          username: event.username,
+        });
+      } catch { }
     }
 
     return res.json({ success: true, event });
@@ -141,34 +163,7 @@ router.post("/create", authenticate, upload.array("media", 12), async (req, res)
   }
 });
 
-// /*
-//   LIST public board
-//   GET /api/events/list
-//   optional: frontend decides visibility UX; we return all events (could filter later)
-// */
-// router.get("/list", async (req, res) => {
-//   try {
-//     // Non-blocking cleanup of expired events (older than 24 hours past endTime)
-//     const now = new Date();
-//     const expiryDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-//     Event.deleteMany({ endTime: { $lt: expiryDate } }).catch(() => {});
 
-//     const events = await Event.find({}).lean();
-
-//     // sort by votes desc then createdAt desc
-//     const sorted = events.sort((a, b) => {
-//       const av = (a.votes && a.votes.length) || 0;
-//       const bv = (b.votes && b.votes.length) || 0;
-//       if (bv !== av) return bv - av;
-//       return new Date(b.createdAt) - new Date(a.createdAt);
-//     });
-
-//     return res.json({ success: true, events: sorted });
-//   } catch (err) {
-//     console.error("List events error:", err);
-//     return res.status(500).json({ success: false, message: err.message });
-//   }
-// });
 
 /*
   LIST public board
@@ -179,7 +174,7 @@ router.get("/list", async (req, res) => {
     // Cleanup old events (non-blocking)
     const now = new Date();
     const expiryDate = new Date(now.getTime() - 24 * 60 * 60 * 1000);
-    Event.deleteMany({ endTime: { $lt: expiryDate } }).catch(() => {});
+    Event.deleteMany({ endTime: { $lt: expiryDate } }).catch(() => { });
 
     const events = await Event.find({}).lean();
 
@@ -216,35 +211,6 @@ router.get("/mine", authenticate, async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 });
-
-/*
-  DETAIL by id or eventLink
-  GET /api/events/:idOrLink
-  public
-*/
-// router.get("/:idOrLink", async (req, res) => {
-//   try {
-//     const { idOrLink } = req.params;
-//     let event = null;
-//     if (/^[0-9a-fA-F]{24}$/.test(idOrLink)) {
-//       event = await Event.findById(idOrLink)
-//         .populate("userId", "name email image")
-//         .populate("comments.userId", "name image")
-//         .lean();
-//     } else {
-//       event = await Event.findOne({ eventLink: idOrLink })
-//         .populate("userId", "name email image")
-//         .populate("comments.userId", "name image")
-//         .lean();
-//     }
-
-//     if (!event) return res.status(404).json({ success: false, message: "Event not found" });
-//     return res.json({ success: true, event });
-//   } catch (err) {
-//     console.error("Get event error:", err);
-//     return res.status(500).json({ success: false, message: err.message });
-//   }
-// });
 
 
 // SECURE GET EVENT (supports preview mode)
@@ -338,12 +304,16 @@ router.put("/update/:id", authenticate, upload.array("media", 12), async (req, r
   try {
     const eventId = req.params.id;
     const event = await Event.findById(eventId);
-    if (!event) return res.status(404).json({ success: false, message: "Event not found" });
+    if (!event)
+      return res.status(404).json({ success: false, message: "Event not found" });
 
     // Only owner can update
-    if (String(event.userId) !== String(req.user._id)) return res.status(403).json({ success: false, message: "Unauthorized" });
+    if (String(event.userId) !== String(req.user._id))
+      return res
+        .status(403)
+        .json({ success: false, message: "Unauthorized" });
 
-    // Accept a set of allowed fields; only update if provided (non-undefined)
+    // ===== ALLOWED FIELDS INCLUDING eventMode =====
     const allowed = [
       "name",
       "description",
@@ -357,30 +327,43 @@ router.put("/update/:id", authenticate, upload.array("media", 12), async (req, r
       "endTime",
       "visibility",
       "passkey",
+      "eventMode",     // ✓ THIS WAS MISSING
+      "maxTeamSize"    // optional
     ];
 
     const update = {};
+
     for (const k of allowed) {
       if (typeof req.body[k] !== "undefined") {
-        if ((k === "startTime" || k === "endTime") && req.body[k]) update[k] = new Date(req.body[k]);
-        else update[k] = req.body[k];
+        if ((k === "startTime" || k === "endTime") && req.body[k]) {
+          update[k] = new Date(req.body[k]);
+        } else {
+          update[k] = req.body[k];
+        }
       }
     }
 
-    // Handle new uploaded media
+    // ===== NEW MEDIA FILES =====
     if (req.files && req.files.length > 0) {
-      const media = req.files.map((f) => ({ url: `/uploads/events/${f.filename}`, filename: f.filename, type: (f.mimetype || "").includes("video") ? "video" : "image" }));
-      // we'll push new media items
+      const media = req.files.map((f) => ({
+        url: `/uploads/events/${f.filename}`,
+        filename: f.filename,
+        type: (f.mimetype || "").includes("video") ? "video" : "image",
+      }));
+
       update.$push = { media: { $each: media } };
     }
 
     const updated = await Event.findByIdAndUpdate(eventId, update, { new: true });
+
     return res.json({ success: true, event: updated });
+
   } catch (err) {
     console.error("Update error:", err);
     return res.status(500).json({ success: false, message: "Server error" });
   }
 });
+ 
 
 /*
   DELETE
@@ -414,7 +397,7 @@ router.delete("/:id", authenticate, async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error" });
   }
 });
- 
+
 /*
   SEARCH USERS by name/email -- used by share UI
   POST /api/events/search-users
@@ -563,7 +546,7 @@ async function handleShare(req, res, useReqUser = true) {
             if (global._io) {
               try {
                 global._io.to(String(receiver.id)).emit("notification", { type: "event_invite", from: sender.id, eventId: event._id, eventName: event.name });
-              } catch (e) {}
+              } catch (e) { }
             }
           }
         }
@@ -633,7 +616,7 @@ router.delete("/cleanup", async (req, res) => {
 });
 
 
- 
+
 
 
 // ---------------------------------------------
@@ -758,7 +741,7 @@ router.post("/:id/interact", authenticate, async (req, res) => {
     if (global._io) {
       try {
         global._io.emit("eventUpdated", { eventId: event._id, action });
-      } catch {}
+      } catch { }
     }
 
     return res.json({ success: true, event });
@@ -919,6 +902,35 @@ router.post("/:id/participate/save", async (req, res) => {
   }
 });
 
+
+const auth = require("../middleware/auth");
+
+router.put("/events/:eventId/mark-winner", auth, async (req, res) => {
+  try {
+    const { eventId } = req.params;
+    const { participantId, position } = req.body;
+
+    const event = await Event.findById(eventId);
+    if (!event) return res.status(404).json({ error: "Event not found" });
+
+    // Only event owner can update
+    if (String(event.createdBy) !== String(req.user.id)) {
+      return res.status(403).json({ error: "Not allowed" });
+    }
+
+    const p = event.participants.id(participantId);
+    if (!p) return res.status(404).json({ error: "Participant not found" });
+
+    // Assign winner position (or remove)
+    p.position = position || null;
+
+    await event.save();
+    return res.json({ success: true, participants: event.participants });
+  } catch (err) {
+    console.error("Mark winner error:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
 
 
 module.exports = router;
