@@ -3,7 +3,7 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const path = require("path");
-const Project = require("../models/project_schema");
+const Project = require("../models/Project_schema");
 const User = require("../models/User");
 
 // ✅ Multer media storage config
@@ -33,7 +33,7 @@ router.post("/projects/upload", upload.single("media"), (req, res) => {
   // const url = `http://localhost:5000/uploads/project/${folder}/${req.file.filename}`;
 
   res.json({ url, type });
-});
+}); 
 
 // ✅ Create project (only called on final Save)
 router.post("/projects/create", async (req, res) => {

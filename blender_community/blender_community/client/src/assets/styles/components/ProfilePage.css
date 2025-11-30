@@ -1,14 +1,24 @@
 /**************************************************************
    GLOBAL CONTAINER
 **************************************************************/
+ 
+
+html, body {
+  min-height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
 .profile-container {
   width: 100%;
-  max-width: 1100px;
-  margin: 0 auto;
-  padding: 20px;
-  font-family: "Inter", sans-serif;
-  color: #0f172a;
+  min-height: 100vh;
+  height: auto;
+  padding-bottom: 40px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
 }
+
 
 /**************************************************************
    BACK BUTTON
@@ -249,18 +259,114 @@
 }
 
 .media-files {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  width: 100%;
+  display: block;
   margin-top: 10px;
 }
 
+
 .media-files img,
 .media-files video {
-  width: 150px;
-  height: 110px;
+  width: 100%;
+  height: auto;
+  max-height: 70vh; /* Same as viewer */
   border-radius: 10px;
-  object-fit: cover;
+  object-fit: contain;
   border: 1px solid #cbd5e1;
   background: #f1f5f9;
+}
+
+
+
+
+/*  */
+/*---------------------- MEDIA CARD ----------------------*/
+.media-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 25px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+   height: auto; 
+}
+
+/* Container that adjusts to window size */
+.media-viewer {
+  position: relative;
+  width: 100%;
+  max-width: 700px;
+  height: auto;
+  margin: 0 auto;
+  border-radius: 12px;
+  overflow: hidden;
+  background: #f5f5f5;
+}
+
+/* Image & Video auto-fit completely */
+.media-content {
+  width: 100%;
+  height: auto;
+  max-height: 70vh;
+  object-fit: contain;
+  display: block;
+  border-radius: 10px;
+}
+
+
+/*----------- ARROW BUTTONS -----------*/
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.4);
+  border: none;
+  color: white;
+  font-size: 24px;
+  padding: 12px;
+  border-radius: 50%;
+  cursor: pointer;
+  z-index: 5;
+  transition: 0.2s ease-in-out;
+}
+
+.arrow:hover {
+  background: rgba(0,0,0,0.7);
+}
+
+.arrow.left {
+  left: 10px;
+}
+
+.arrow.right {
+  right: 10px;
+}
+
+/*----------- COUNTER 1/5 -----------*/
+.counter {
+  position: absolute;
+  bottom: 10px;
+  right: 12px;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  padding: 6px 12px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+
+/* RESPONSIVE */
+@media (max-width: 600px) {
+  .media-content {
+    max-height: 60vh;
+  }
+
+  .arrow {
+    font-size: 20px;
+    padding: 8px;
+  }
+
+  .counter {
+    font-size: 12px;
+  }
 }

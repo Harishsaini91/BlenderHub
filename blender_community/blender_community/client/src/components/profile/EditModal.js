@@ -15,6 +15,16 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
   const [bannerFile, setBannerFile] = useState(null);
   const [previewBannerUrl, setPreviewBannerUrl] = useState("");
 
+
+  const getFullUrl = (url) => {
+    if (!url) return "";
+    return url.startsWith("/uploads")
+      ? `http://localhost:5000${url}`
+      : `http://localhost:5000/uploads/media/${url}`;
+  };
+
+
+
   useEffect(() => {
     if (section === "media") {
       setTempDeletedFiles([]);
@@ -50,7 +60,7 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
         // store full path
         setForm((prev) => ({
           ...prev,
-          banner: `/uploads/image/${data.filename}`,
+          banner: `/uploads/banner/${data.filename}`,
         }));
       }
     } catch (err) {
@@ -94,59 +104,64 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
   /*************************************************
    * MEDIA UPLOAD
    **************************************************/
-  const handleMediaFileUpload = async (files) => {
-    const newFiles = Array.from(files);
-    const formData = new FormData();
+const handleMediaFileUpload = async (files) => {
+  const newFiles = Array.from(files);
+  const formData = new FormData();
 
-    newFiles.forEach((file) => {
-      formData.append("media", file);
+  newFiles.forEach((file) => {
+    formData.append("media", file);
+  });
+
+  try {
+    const res = await fetch("http://localhost:5000/api/upload_image", {
+      method: "POST",
+      body: formData,
     });
 
-    try {
-      const res = await fetch("http://localhost:5000/api/upload_image", {
-        method: "POST",
-        body: formData,
-      });
+    const data = await res.json();
 
-      const data = await res.json();
+    if (!data.files || !Array.isArray(data.files)) {
+      console.error("Unexpected upload response:", data);
+      return;
+    }
 
-      if (!data.files || !Array.isArray(data.files)) {
-        console.error("Unexpected upload response:", data);
-        return;
-      }
+    const uploadedFiles = data.files.map((f, i) => {
+      const cleanPath = f.path.startsWith("/")
+        ? f.path
+        : "/" + f.path.replace(/\\/g, "/");
 
-      const uploadedFiles = data.files.map((f, i) => ({
-        url: `/uploads/image/${f.filename}`,
-        type: f.filename.endsWith(".mp4") || f.filename.endsWith(".webm")
-          ? "video"
-          : "image",
+      return {
+        url: cleanPath,     // FIXED URL
+        type: f.filename.match(/\.(mp4|webm)$/) ? "video" : "image",
         priority: i,
         temp: true,
-      }));
+      };
+    });
 
-      setForm((prev) => {
-        const mediaCopy = [...(prev.media || [])];
-        if (!mediaCopy[mediaIndex]) return prev;
+    setForm((prev) => {
+      const mediaCopy = [...(prev.media || [])];
+      if (!mediaCopy[mediaIndex]) return prev;
 
-        const existingUrls = new Set(
-          (mediaCopy[mediaIndex].files || []).map((file) => file.url)
-        );
+      const existingUrls = new Set(
+        (mediaCopy[mediaIndex].files || []).map((file) => file.url)
+      );
 
-        const newUnique = uploadedFiles.filter(
-          (f) => !existingUrls.has(f.url)
-        );
+      const newUnique = uploadedFiles.filter(f => !existingUrls.has(f.url));
 
-        mediaCopy[mediaIndex].files = [
-          ...(mediaCopy[mediaIndex].files || []),
-          ...newUnique,
-        ];
+      mediaCopy[mediaIndex].files = [
+        ...(mediaCopy[mediaIndex].files || []),
+        ...newUnique,
+      ];
 
-        return { ...prev, media: mediaCopy };
-      });
-    } catch (err) {
-      console.error("Upload failed:", err);
-    }
-  };
+      return { ...prev, media: mediaCopy };
+    });
+
+  } catch (err) {
+    console.error("Upload failed:", err);
+  }
+};
+
+
 
   /*************************************************
    * SKILLS HANDLING
@@ -394,10 +409,13 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
                 <label>Upload Media</label>
                 <input
                   type="file"
+                  name="media"
                   multiple
                   accept="image/*,video/*"
                   onChange={(e) => handleMediaFileUpload(e.target.files)}
                 />
+
+
 
                 {(form.media[mediaIndex].files || []).map((file, i) => (
                   <div
@@ -411,9 +429,9 @@ const EditModal = ({ section, user, onSave, onCancel }) => {
                     <span>#{i}</span>
 
                     {file.type === "video" ? (
-                      <video src={file.url} width="80" controls />
+                      <video src={getFullUrl(file.url)} width="80" controls />
                     ) : (
-                      <img src={file.url} width="80" alt="media" />
+                      <img src={getFullUrl(file.url)} width="80" alt="media" />
                     )}
 
                     <button onClick={() => handleMediaFileDelete(i)}>❌</button>

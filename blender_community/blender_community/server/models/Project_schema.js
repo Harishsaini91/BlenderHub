@@ -50,7 +50,7 @@ const CommentSchema = new Schema({
   image: { type: String },
   text: { type: String, required: true },
   createdAt: { type: Date, default: Date.now },
-  replies: { type: [ReplySchema], default: [] }
+  replies: { type: [ReplySchema], default: [] } 
 });
 
 const ProjectSchema = new Schema({

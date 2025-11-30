@@ -23,7 +23,6 @@ import LongTermProjectWrapper from "../components/projects/longterm/LongTermProj
 const menuItems = [
   "Profile",
   "Connect People",
-  "Team Request",
   "Stats",
   "Messages",
   "Notification",
@@ -130,7 +129,11 @@ export default function Dashboard() {
                   <div className="profile-circle">
                     {user.image ? (
                       <img
-                        src={`http://localhost:5000/uploads/image/${user.image}`}
+                        src={
+                          user.image.startsWith("/uploads")
+                            ? `http://localhost:5000${user.image}`
+                            : `http://localhost:5000/uploads/image/${user.image}`
+                        }
                         className="user-img"
                         alt="User"
                       />
@@ -167,6 +170,7 @@ export default function Dashboard() {
               />
             )}
           </div>
+
         </ul>
       </div>
 
@@ -241,7 +245,7 @@ export default function Dashboard() {
           {activeKey === "Make_Project" && (
             <LongTermProjectWrapper
               user={user}
-              
+
             />
           )}
 

@@ -17,6 +17,20 @@ const ConnectPeople = ({ user, socket, mode = "connection", setProfileUserId }) 
   const [pendingIds, setPendingIds] = useState([]);
   const [notifications, setNotifications] = useState({ sent: [], received: [] });
 
+  const getFullUrl = (img) => {
+    if (!img) return "/default.png"; // fallback
+
+    // If image already contains /uploads/... just return it with base URL
+    if (img.startsWith("/uploads")) {
+      return `http://localhost:5000${img}`;
+    }
+
+    // Else, add the folder
+    return `http://localhost:5000/uploads/image/${img}`;
+  };
+
+
+
   const apiMap = {
     connection: {
       endpoint: "connection-request",
@@ -217,11 +231,12 @@ const ConnectPeople = ({ user, socket, mode = "connection", setProfileUserId }) 
                 <div key={u._id} className="user-card">
                   {/* <img src={`/uploads/image/${u.image}`} alt={u.name} /> */}
                   <img
-                    src={`/uploads/image/${u.image}`}
+                    src={getFullUrl(u.image)}
                     alt={u.name}
                     onClick={() => handleViewProfile(u._id)}
                     style={{ cursor: "pointer" }}
                   />
+
 
                   <div className="user-info">
                     <p>{u.name}</p>
@@ -264,7 +279,8 @@ const ConnectPeople = ({ user, socket, mode = "connection", setProfileUserId }) 
             {(user?.members || []).map((m) => (
               <div key={m._id} className="user-card">
                 <div className="user-info">
-                  <img src={`/uploads/image/${m.image}`} alt="profile" />
+                 <img src={getFullUrl(m.image)} alt="profile" />
+
                   <div className="text-info">
                     <p className="user-name">{m.name}</p>
                     <button

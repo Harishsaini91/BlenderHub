@@ -1,4 +1,4 @@
- 
+
 
 // client/src/components/notification/ConnectionRequests.js
 import React, { useEffect, useState } from "react";
@@ -7,19 +7,30 @@ import moment from "moment";
 import "assets/styles/components/ConnectionRequests.css";
 
 
+
+
 const ConnectionRequests = ({ socket }) => {
   const [received, setReceived] = useState([]);
   const [sent, setSent] = useState([]);
   const [activeView, setActiveView] = useState("received");
- const [user, setUser] = useState(() => {
-  try {
-    const stored = sessionStorage.getItem("user");
-    return stored ? JSON.parse(stored) : null;
-  } catch (e) {
-    console.error("❌ Failed to parse user from sessionStorage:", e);
-    return null;
-  }
-});
+  const [user, setUser] = useState(() => {
+    try {
+      const stored = sessionStorage.getItem("user");
+      return stored ? JSON.parse(stored) : null;
+    } catch (e) {
+      console.error("❌ Failed to parse user from sessionStorage:", e);
+      return null;
+    }
+  });
+
+  const getFullUrl = (url) => {
+    if (!url) return "";
+
+    return url.startsWith("/uploads")
+      ? `http://localhost:5000${url}`
+      : `http://localhost:5000/uploads/image/${url}`;
+  };
+
 
 
   useEffect(() => {
@@ -37,8 +48,8 @@ const ConnectionRequests = ({ socket }) => {
   }, [user?._id]);
 
   if (!user || !user._id) {
-  return <p>Loading notifications...</p>;
-}
+    return <p>Loading notifications...</p>;
+  }
 
 
   const fetchAll = async () => {
@@ -60,38 +71,38 @@ const ConnectionRequests = ({ socket }) => {
     }
   };
 
-const handleRespond = async (notifId, decision, senderId) => {
-  try {
-    const res = await axios.post(`http://localhost:5000/api/respond`, {
-      notificationId: notifId,
-      decision,
-      userId: user._id,
-      senderId,
-    });
+  const handleRespond = async (notifId, decision, senderId) => {
+    try {
+      const res = await axios.post(`http://localhost:5000/api/respond`, {
+        notificationId: notifId,
+        decision,
+        userId: user._id,
+        senderId,
+      });
 
-    // Emit socket update for real-time sync
-    socket.emit("connectionResponse", { to: senderId });
+      // Emit socket update for real-time sync
+      socket.emit("connectionResponse", { to: senderId });
 
-    // 🧹 If rejected, clean from session/localStorage manually
-    if (decision === "rejected") {
-      const stored = sessionStorage.getItem("notifications");
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        const updatedReceived = parsed.received?.filter(req => req._id !== notifId) || [];
-        const updatedSent = parsed.sent || [];
-        sessionStorage.setItem(
-          "notifications",
-          JSON.stringify({ received: updatedReceived, sent: updatedSent })
-        );
+      // 🧹 If rejected, clean from session/localStorage manually
+      if (decision === "rejected") {
+        const stored = sessionStorage.getItem("notifications");
+        if (stored) {
+          const parsed = JSON.parse(stored);
+          const updatedReceived = parsed.received?.filter(req => req._id !== notifId) || [];
+          const updatedSent = parsed.sent || [];
+          sessionStorage.setItem(
+            "notifications",
+            JSON.stringify({ received: updatedReceived, sent: updatedSent })
+          );
+        }
       }
-    }
 
-    // 🔄 Re-fetch updated list
-    fetchAll();
-  } catch (err) {
-    console.error("❌ Failed to respond to request:", err);
-  }
-};
+      // 🔄 Re-fetch updated list
+      fetchAll();
+    } catch (err) {
+      console.error("❌ Failed to respond to request:", err);
+    }
+  };
 
   const getFormattedTime = (dateStr) => {
     const now = moment();
@@ -111,69 +122,73 @@ const handleRespond = async (notifId, decision, senderId) => {
     return <p>Loading notifications...</p>;
   }
 
- return (
-  <div className="connection-requests-container">
-    <div className="tabs">
-      <button
-        className={activeView === "received" ? "active-tab" : ""}
-        onClick={() => setActiveView("received")}
-      >
-        Received Requests
-      </button>
-      <button
-        className={activeView === "sent" ? "active-tab" : ""}
-        onClick={() => setActiveView("sent")}
-      >
-        Sent Requests
-      </button>
-    </div>
+  return (
+    <div className="connection-requests-container">
+      <div className="tabs">
+        <button
+          className={activeView === "received" ? "active-tab" : ""}
+          onClick={() => setActiveView("received")}
+        >
+          Received Requests
+        </button>
+        <button
+          className={activeView === "sent" ? "active-tab" : ""}
+          onClick={() => setActiveView("sent")}
+        >
+          Sent Requests
+        </button>
+      </div>
 
-    {activeView === "received" ? (
-      <div className="requests-list">
-        {received.length === 0 ? (
-          <p>No received requests.</p>
-        ) : (
-          received.map((req, i) => (
-            <div key={i} className="request-card inline">
-              <img src={`http://localhost:5000/uploads/image/${req.image}`} alt="profile" />
-              <div className="d">
-                <strong>{req.name}</strong>
-                <div className="skills-list">
-                  {req.skills?.map((skill, idx) => (
-                    <span key={idx} className="skill-badge">{skill}</span>
-                  ))}
+      {activeView === "received" ? (
+        <div className="requests-list">
+          {received.length === 0 ? (
+            <p>No received requests.</p>
+          ) : (
+            received.map((req, i) => (
+              <div key={i} className="request-card inline">
+                {/* <img src={`http://localhost:5000/uploads/image/${req.image}`} alt="profile" /> */}
+                <img src={getFullUrl(req.senderImage)} alt="profile" />
+
+                <div className="d">
+                  <strong>{req.name}</strong>
+                  <div className="skills-list">
+                    {req.skills?.map((skill, idx) => (
+                      <span key={idx} className="skill-badge">{skill}</span>
+                    ))}
+                  </div>
+                  <p className="status-time">pending • {getFormattedTime(req.date)}</p>
                 </div>
-                <p className="status-time">pending • {getFormattedTime(req.date)}</p>
+                <div className="btns">
+                  <button onClick={() => handleRespond(req._id, "accepted", req.id)}>Accept</button>
+                  <button onClick={() => handleRespond(req._id, "rejected", req.id)}>Reject</button>
+                </div>
               </div>
-              <div className="btns">
-                <button onClick={() => handleRespond(req._id, "accepted", req.id)}>Accept</button>
-                <button onClick={() => handleRespond(req._id, "rejected", req.id)}>Reject</button>
+            ))
+          )}
+        </div>
+      ) : (
+        <div className="requests-list">
+          {sent.length === 0 ? (
+            <p>No sent requests.</p>
+          ) : (
+            sent.map((req, i) => (
+              <div key={i} className="request-card sent inline">
+                {/* <img src={`http://localhost:5000/uploads/image/${req.image}`} alt="profile" /> */}
+                <img src={getFullUrl(req.receiverImage)} alt="profile" />
+
+                <div className="d">
+                  <strong>{req.name}</strong>
+                  <p className="status-time">
+                    {req.status} • {getFormattedTime(req.date)}
+                  </p>
+                </div>
               </div>
-            </div>
-          ))
-        )}
-      </div>
-    ) : (
-      <div className="requests-list">
-        {sent.length === 0 ? (
-          <p>No sent requests.</p>
-        ) : (
-          sent.map((req, i) => (
-            <div key={i} className="request-card sent inline">
-              <img src={`http://localhost:5000/uploads/image/${req.image}`} alt="profile" />
-              <div className="d">
-                <strong>{req.name}</strong>
-                <p className="status-time">
-                  {req.status} • {getFormattedTime(req.date)}
-                </p>
-              </div>
-            </div>
-          ))
-        )}
-      </div>
-    )}
-  </div>
-);
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
 
 };
 
