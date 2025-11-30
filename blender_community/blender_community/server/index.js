@@ -202,7 +202,7 @@ app.use("/api", project_solo_team);
 app.use("/api", projectFeedRoutes);
 
 
- app.get("/", (req, res) => {
+ app.get("/test", (req, res) => {
   res.json({ message: "Backend is running!" });
 });
 
