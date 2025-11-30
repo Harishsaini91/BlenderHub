@@ -36,6 +36,40 @@ const app = express();
 const server = http.createServer(app);
 const PORT = process.env.PORT || 5000; 
 
+
+/* ===============================================================
+   MONGODB
+   =============================================================== */
+// mongoose
+//   .connect(process.env.MONGO_URI , {
+//   // .connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/blender_community", {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+//   })
+//   .then(() => console.log("✅ MongoDB Connected"))
+//   .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+
+
+console.log("Connecting to MongoDB...");
+console.log("MONGO_URI:", process.env.MONGO_URI);   // Debug
+MONGO_URI= process.env.MONGO_URI || "mongodb://127.0.0.1:27017/blender_community" ;
+mongoose.connect(process.env.MONGO_URI)
+  .then(() => console.log("🔥 Connected to MongoDB Atlas"))
+  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
+
+mongoose.connection.on("connected", () => {
+  console.log("⚡ Database connected successfully");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("❌ Database error:", err);
+});
+
+mongoose.connection.on("disconnected", () => {
+  console.log("⚠️ Database disconnected");
+});
+
+
 /* ===============================================================
    GLOBAL MIDDLEWARE / CORS / BODY PARSING
    =============================================================== */
@@ -208,16 +242,6 @@ app.use("/api", projectFeedRoutes);
 
 
 
-/* ===============================================================
-   MONGODB
-   =============================================================== */
-mongoose
-  .connect(process.env.MONGO_URI || "mongodb://127.0.0.1:27017/blender_community", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("✅ MongoDB Connected"))
-  .catch((err) => console.error("❌ MongoDB Connection Error:", err));
 
 /* ===============================================================
    START SERVER
@@ -225,3 +249,4 @@ mongoose
 server.listen(PORT, () => {
   console.log(`🟢 Server running at: http://localhost:${PORT}`);
 });
+ 
